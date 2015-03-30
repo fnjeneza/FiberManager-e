@@ -106,18 +106,22 @@ void FMProcedure::exportFlr(){
 
     QFile csv(QDir::tempPath()+"/flr.csv");
     csv.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&csv);
+    out<<"hexacle;adresse;nb_bal;parcelle;phd;type_habitat;type_chausse;anc_chaussee;type_trottoir;anc_trottoir;gestionnaire;nro;poche;adduction;concessionnaire;boite;pm;lr_pm;commentaire";
+    csv.flush();
+
 
 
     while(query.next()){
         QString hexacle = query.value("code").toString();
-        int bal = query.value("num").toInt();
+        QString bal = query.value("num").toInt();
         QString num_parc = query.value("num_parcelle").toString();
         QString type_chaussee = query.value("type_chaussee").toString();
-        int anc_chaussee = query.value("anc_chaussee").toInt();
+        QString anc_chaussee = query.value("anc_chaussee").toInt();
         QString type_trottoir = query.value("type_trottoir").toString();
-        int anc_trottoir = query.value("anc_trottoir").toInt();
+        QString anc_trottoir = query.value("anc_trottoir").toInt();
         QString gestionnaire = query.value("gestionnaire").toString();
-        int poche = query.value("poche").toInt();
+        QString poche = query.value("poche").toInt();
         QString boite_rattachement = query.value("pme").toString();
         QString adduction = query.value("adduction").toString();
         QString concessionnaire = query.value("concessionnaire").toString();
@@ -125,8 +129,13 @@ void FMProcedure::exportFlr(){
         QString lr_pm = query.value("logements_pm").toString();
         QString commentaire = query.value("commentaire").toString();
         QString adresse = Address::getCompleteAddress(query.value("num").toInt(),query.value("suf").toString(), query.value("voie").toString());
-
-
+        QString phd="PHD";
+        QString type_habitat=bal.toInt()>1?"INDIV":"COLL";
+        out<<hexacle+";"+adresse +";"+bal  +";"+num_parc+";"+ phd +";"+type_habitat +";"+type_chaussee+";"
+          << anc_chaussee +";"+type_trottoir +";"+anc_trottoir +";"+gestionnaire +";"+nro+";"+ poche+";"+ adduction +";"
+          << concessionnaire+";"+boite_rattachement+";"+ reference+";"+ lr_pm+";"+ commentaire;
+        csv.flush();
     }
+    csv.close();
     flr.close();
 }

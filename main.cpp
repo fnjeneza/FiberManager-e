@@ -41,8 +41,9 @@ int main(int argc, char *argv[])
     }
 
     if(extractFlr){
-        fmp.exportFlr();
+        //fmp.exportFlr();
     }
+
 
 
 qDebug()<< "Fini";
