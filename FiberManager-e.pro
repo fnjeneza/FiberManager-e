@@ -19,9 +19,11 @@ TEMPLATE = app
 SOURCES += main.cpp \
     dbhandler.cpp \
     parameters.cpp \
-    fmprocedure.cpp
+    fmprocedure.cpp \
+    address.cpp
 
 HEADERS += \
     dbhandler.h \
     parameters.h \
-    fmprocedure.h
+    fmprocedure.h \
+    address.h

@@ -1,6 +1,7 @@
 #include <QCoreApplication>
 #include "fmprocedure.h"
 
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -40,8 +41,10 @@ int main(int argc, char *argv[])
     }
 
     if(extractFlr){
-        fmp.connectToPostgresServer("PLA13_038","10.0.0.254", "be_free", "123456");
+        fmp.exportFlr();
     }
 
+
+qDebug()<< "Fini";
     return a.exec();
 }
