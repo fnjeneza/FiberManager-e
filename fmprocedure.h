@@ -6,7 +6,10 @@
 #include <QStringList>
 #include <QDate>
 #include <QTime>
+#include <QSqlRecord>
+#include <QFile>
 #include "dbhandler.h"
+#include "address.h"
 
 
 class FMProcedure
@@ -17,13 +20,12 @@ public:
     void generateDoeRepository(QString path, QString nro, QString poche, QString plaque, QString ext);
     void controlDoeRepository(QString path);
     void showMessage(QString message);
-    void extractFlr(QString schemas,QString casage);
+    void exportFlr();
     void extractSiteFromOptique();
     void setOptiquePath(QString path);
     void extractNoeudsFromOptique();
     void connectToOptiqueMdb();
     void closeConnectionToOptiqueMdb();
-    void connectToPostgresServer(QString database, QString host, QString userName, QString pwd);
 
 
 private:

@@ -88,25 +88,43 @@ void FMProcedure::closeConnectionToOptiqueMdb(){
     }
 }
 
-void FMProcedure::connectToPostgresServer(QString database, QString host, QString userName, QString pwd){
-    psqlDb=QSqlDatabase::addDatabase("QPSQL");
-    psqlDb.setDatabaseName(database);
-    psqlDb.setUserName(userName);
-    psqlDb.setPassword(pwd);
-    psqlDb.setHostName(host);
 
-    if(!psqlDb.open()){
-        showMessage(psqlDb.lastError().text());
-    }
-}
 
-void FMProcedure::extractFlr(QString schemas, QString casage){
-    QString table;
-    if(!schemas.isEmpty()){
-        table=schemas+"."+casage;
+
+void FMProcedure::exportFlr(){
+    DbHandler db=DbHandler();
+    QSqlDatabase flr = db.connectToPostgresServer("flr");
+    QSqlQuery query = flr.exec("select * from flr limit 1");
+    if(!query.isActive()){
+        qDebug()<< query.lastError().text();
+        return;
     }
-    else{
-        table=casage;
+    QSqlRecord record = query.record();
+    for(int i=0; i<record.count(); i++){
+        qDebug()<<record.fieldName(i);
     }
 
+
+
+    while(query.next()){
+        QString hexacle = query.value("code").toString();
+        int bal = query.value("num").toInt();
+        QString num_parc = query.value("num_parcelle").toString();
+        QString type_chaussee = query.value("type_chaussee").toString();
+        int anc_chaussee = query.value("anc_chaussee").toInt();
+        QString type_trottoir = query.value("type_trottoir").toString();
+        int anc_trottoir = query.value("anc_trottoir").toInt();
+        QString gestionnaire = query.value("gestionnaire").toString();
+        int poche = query.value("poche").toInt();
+        QString boite_rattachement = query.value("pme").toString();
+        QString adduction = query.value("adduction").toString();
+        QString concessionnaire = query.value("concessionnaire").toString();
+        QString reference = query.value("reference").toString();
+        QString lr_pm = query.value("logements_pm").toString();
+        QString commentaire = query.value("commentaire").toString();
+        QString adresse = Address::getCompleteAddress(query.value("num").toInt(),query.value("suf").toString(), query.value("voie").toString());
+
+
+    }
+    flr.close();
 }
