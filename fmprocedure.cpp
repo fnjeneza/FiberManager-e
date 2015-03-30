@@ -104,6 +104,8 @@ void FMProcedure::exportFlr(){
         qDebug()<<record.fieldName(i);
     }
 
+    QFile csv(QDir::tempPath()+"/flr.csv");
+    csv.open(QIODevice::WriteOnly | QIODevice::Text);
 
 
     while(query.next()){
