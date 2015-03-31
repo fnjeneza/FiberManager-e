@@ -94,46 +94,60 @@ void FMProcedure::closeConnectionToOptiqueMdb(){
 void FMProcedure::exportFlr(){
     DbHandler db=DbHandler();
     QSqlDatabase flr = db.connectToPostgresServer("flr");
-    QSqlQuery query = flr.exec("select * from flr limit 1");
+    QSqlQuery query = flr.exec("select * from flr");
     if(!query.isActive()){
         qDebug()<< query.lastError().text();
         return;
     }
-    QSqlRecord record = query.record();
-    for(int i=0; i<record.count(); i++){
-        qDebug()<<record.fieldName(i);
-    }
+
 
     QFile csv(QDir::tempPath()+"/flr.csv");
     csv.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&csv);
-    out<<"hexacle;adresse;nb_bal;parcelle;phd;type_habitat;type_chausse;anc_chaussee;type_trottoir;anc_trottoir;gestionnaire;nro;poche;adduction;concessionnaire;boite;pm;lr_pm;commentaire";
+    out<<"hexacle;adresse;nb_bal;phd;parcelle;zone;type_habitat;type_chausse;anc_chaussee;type_trottoir;anc_trottoir;gestionnaire;nro;poche;boite;adduction;concessionnaire;pm;lr_pm;commentaire\n";
     csv.flush();
 
 
 
     while(query.next()){
         QString hexacle = query.value("code").toString();
-        QString bal = query.value("num").toInt();
+        QString bal = query.value("num").toString();
         QString num_parc = query.value("num_parcelle").toString();
         QString type_chaussee = query.value("type_chaussee").toString();
-        QString anc_chaussee = query.value("anc_chaussee").toInt();
+        QString anc_chaussee = query.value("anc_chaussee").toString();
         QString type_trottoir = query.value("type_trottoir").toString();
-        QString anc_trottoir = query.value("anc_trottoir").toInt();
+        QString anc_trottoir = query.value("anc_trottoir").toString();
         QString gestionnaire = query.value("gestionnaire").toString();
-        QString poche = query.value("poche").toInt();
-        QString boite_rattachement = query.value("pme").toString();
+        QString poche = query.value("poche").toString();
+        QString boite_rattachement = query.value("boite_rattachement").toString().replace(";",",");
         QString adduction = query.value("adduction").toString();
         QString concessionnaire = query.value("concessionnaire").toString();
-        QString reference = query.value("reference").toString();
+        QString reference = query.value("reference").toString().replace(";",",");
         QString lr_pm = query.value("logements_pm").toString();
-        QString commentaire = query.value("commentaire").toString();
-        QString adresse = Address::getCompleteAddress(query.value("num").toInt(),query.value("suf").toString(), query.value("voie").toString());
+        QString commentaire = query.value("commentaire").toString().replace(";",",");
+        QString adresse = Address::getCompleteAddress(query.value("num").toInt(),
+                                                      query.value("suf").toString(),
+                                                      query.value("voie").toString(),
+                                                      query.value("code_postal").toString(),
+                                                      query.value("ville").toString());
+        QString zone;
+        QString nro=Parameters::getNro();
         QString phd="PHD";
-        QString type_habitat=bal.toInt()>1?"INDIV":"COLL";
-        out<<hexacle+";"+adresse +";"+bal  +";"+num_parc+";"+ phd +";"+type_habitat +";"+type_chaussee+";"
-          << anc_chaussee +";"+type_trottoir +";"+anc_trottoir +";"+gestionnaire +";"+nro+";"+ poche+";"+ adduction +";"
-          << concessionnaire+";"+boite_rattachement+";"+ reference+";"+ lr_pm+";"+ commentaire;
+        QString type_habitat=bal.toInt()>1?"COLL":"INDIV";
+
+        if(reference.isEmpty()){
+            reference="PAS DE PM";
+        }
+        if(adduction.isEmpty()){
+            adduction="GC";
+            concessionnaire="FT";
+        }
+        if(concessionnaire.isEmpty()){
+            concessionnaire="FT";
+        }
+        out<<hexacle+";"+adresse +";"+bal+";"+phd+";"+num_parc+";"+zone+";"+type_habitat +";"+type_chaussee+";"
+          << anc_chaussee +";"+type_trottoir +";"+anc_trottoir +";"+gestionnaire +";"+nro+";"+ poche+";"+boite_rattachement+";"+ adduction +";"
+          << concessionnaire+";"+ reference+";"+ lr_pm+";"+ commentaire+"\n";
         csv.flush();
     }
     csv.close();

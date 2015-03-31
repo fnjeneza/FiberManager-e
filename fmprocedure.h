@@ -10,6 +10,7 @@
 #include <QFile>
 #include "dbhandler.h"
 #include "address.h"
+#include "parameters.h"
 
 
 class FMProcedure

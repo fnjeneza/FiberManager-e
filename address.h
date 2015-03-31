@@ -13,6 +13,7 @@ public:
 
     QString getCompleteAddress();
     static QString getCompleteAddress(int num, QString suf, QString voie);
+    static QString getCompleteAddress(int num, QString suf, QString voie, QString code_postal, QString commune);
     int getAddressNum();
     void setAddressNum(int num);
     QString getAddressSuf();

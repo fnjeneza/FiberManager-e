@@ -20,10 +20,16 @@ SOURCES += main.cpp \
     dbhandler.cpp \
     parameters.cpp \
     fmprocedure.cpp \
-    address.cpp
+    address.cpp \
+    fmgishandler.cpp \
+    fmsql.cpp \
+    optique.cpp
 
 HEADERS += \
     dbhandler.h \
     parameters.h \
     fmprocedure.h \
-    address.h
+    address.h \
+    fmgishandler.h \
+    fmsql.h \
+    optique.h

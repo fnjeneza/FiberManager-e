@@ -84,3 +84,13 @@ QString Address::getCompleteAddress(int num, QString suf, QString voie){
     address=address+" "+voie;
     return address;
 }
+
+QString Address::getCompleteAddress(int num, QString suf, QString voie, QString code_postal, QString commune){
+    QString address=QString::number(num);
+    if(!suf.isEmpty()){
+        address=address+" "+suf;
+    }
+    address=address+" "+voie+" "+code_postal+" "+commune;
+    address=address.trimmed();
+    return address;
+}
