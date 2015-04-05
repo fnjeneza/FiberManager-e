@@ -22,17 +22,15 @@ public:
     void controlDoeRepository(QString path);
     void showMessage(QString message);
     void exportFlr();
-    void extractSiteFromOptique();
-    void setOptiquePath(QString path);
-    void extractNoeudsFromOptique();
-    void connectToOptiqueMdb();
-    void closeConnectionToOptiqueMdb();
+    bool isFrontZone(QString num, QString suf, QString voie); //est ce une zone avant
 
 
 private:
     QString optiquePath;
     QSqlDatabase optiqueDb;
     QSqlDatabase psqlDb;
+    DbHandler* default_psql;
+    DbHandler* tmp_psql;
 };
 
 #endif // FMPROCEDURE_H

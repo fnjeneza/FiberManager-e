@@ -2,16 +2,27 @@
 
 FMProcedure::FMProcedure()
 {
-
+    Parameters p = Parameters();
+    default_psql=new DbHandler(p.getHost(),
+                       p.getUserName(),
+                       p.getPassword(),
+                       p.getDatabaseName());
+    tmp_psql=new DbHandler("tmp",
+                           p.getHost(),
+                       p.getUserName(),
+                       p.getPassword(),
+                       p.getDatabaseName());
 }
+
 
 FMProcedure::~FMProcedure()
-{
+{   default_psql->closeDb();
+    tmp_psql->closeDb();
+    delete default_psql;
+    delete tmp_psql;
 }
 
-void FMProcedure::setOptiquePath(QString path){
-    optiquePath=path;
-}
+
 
 void FMProcedure::showMessage(QString message){
     qDebug()<<message;
@@ -51,50 +62,34 @@ void FMProcedure::generateDoeRepository(QString path, QString nro, QString poche
 void FMProcedure::controlDoeRepository(QString path){
 
 }
-void FMProcedure::connectToOptiqueMdb(){
-    optiqueDb = QSqlDatabase::addDatabase("QODBC");
-    if(optiquePath.isEmpty()){
-        showMessage("Optique path is empty");
-        return;
+
+bool FMProcedure::isFrontZone(QString num, QString suf, QString voie){
+
+    QString num_voie=num+" "+suf;
+    QString req = "select rivoli from site.rivoli where voie='"+voie+"'";
+
+    QSqlQuery query = tmp_psql->executeQuery(DbHandler::BASE_PSQL, req);
+    if(!query.next()){
+        return false;
     }
-    optiqueDb.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+optiquePath);
-    if(!optiqueDb.open()){
-            qDebug()<<optiqueDb.lastError().text();
+
+    QString rivoli=query.value(0).toString();
+    req = "select recno from optique.noeuds where num_voie='"+num_voie.trimmed()+"' and rivoli='"+rivoli+"' and deleted<>'*'";
+    query = tmp_psql->executeQuery(DbHandler::BASE_PSQL, req);
+    if(!query.next()){
+        return false;
     }
-
-}
-
-
-void FMProcedure::extractSiteFromOptique(){
-
-
-}
-
-void FMProcedure::extractNoeudsFromOptique(){
-
-    if(optiqueDb.isOpen()){
-        showMessage("Optique non connecté");
+    if(!query.value(0).toString().isEmpty()){
+        return true;
     }
-    QSqlQuery query = optiqueDb.exec("select * from noeuds");
-    while(query.next()){
-        QString noeud = query.value(2).toString();
-        qDebug()<<noeud;
-    }
-}
-
-void FMProcedure::closeConnectionToOptiqueMdb(){
-    if(optiqueDb.isOpen()){
-        optiqueDb.close();
-    }
+    return false;
 }
 
 
 
 
 void FMProcedure::exportFlr(){
-    DbHandler db=DbHandler();
-    QSqlDatabase flr = db.connectToPostgresServer("flr");
-    QSqlQuery query = flr.exec("select * from flr");
+    QSqlQuery query = default_psql->executeQuery(DbHandler::BASE_PSQL,"select * from flr");
     if(!query.isActive()){
         qDebug()<< query.lastError().text();
         return;
@@ -130,8 +125,15 @@ void FMProcedure::exportFlr(){
                                                       query.value("voie").toString(),
                                                       query.value("code_postal").toString(),
                                                       query.value("ville").toString());
-        QString zone;
-        QString nro=Parameters::getNro();
+
+        QString zone="Zone Arriere";
+        bool isZone = isFrontZone(query.value("num").toString().trimmed(),
+                                    query.value("suf").toString().trimmed(),
+                                    query.value("voie").toString().trimmed());
+        if(isZone){
+            zone="Zone Avant";
+        }
+        QString nro="SLO13";
         QString phd="PHD";
         QString type_habitat=bal.toInt()>1?"COLL":"INDIV";
 
@@ -151,5 +153,4 @@ void FMProcedure::exportFlr(){
         csv.flush();
     }
     csv.close();
-    flr.close();
 }
