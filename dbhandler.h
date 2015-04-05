@@ -6,31 +6,28 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QSqlQuery>
+#include <QSqlRecord>
+#include <QSqlField>
 
 
 class DbHandler
 {
 public:
-    DbHandler();
+    DbHandler(QString mdbPath); //connect to access db
+    DbHandler(QString host, QString userName, QString password, QString databaseName);
+    DbHandler(QString connectionName, QString host, QString userName, QString password, QString databaseName);//connect to postgres db
     ~DbHandler();
 
-    QSqlDatabase connectToMdb(QString fullPath, QString connectionName);
-    QSqlDatabase connectToPostgresServer(QString connectionName);
-    QSqlQuery executeQuery(QSqlDatabase qsd, QString query);
-    void closeDb(QSqlDatabase);
-    void setDatabase(QString database);
-    void setHost(QString host);
-    void setUserName(QString userName);
-    void setPassword(QString pwd);
+    QSqlQuery executeQuery(int BASE, QString query);
+    void closeDb();
 
-    QString optique;
-    QSqlDatabase optiqueDb;
+    static const int BASE_MDB=1; //mdb
+    static const int BASE_PSQL=2;   //psql
 
 private:
-    QString database;
-    QString host;
-    QString userName;
-    QString pwd;
+    QSqlDatabase mdb;
+    QSqlDatabase psql;
+    QSqlQuery req;
 
 };
 

@@ -1,70 +1,75 @@
 #include "dbhandler.h"
 
-DbHandler::DbHandler()
+DbHandler::DbHandler(QString host, QString userName, QString password, QString databaseName)
 {
-    optique = "T:\\Secteur.mdb";
-    database = "PLA13_038";
-    host="10.0.0.254";
-    userName="be_free";
-    pwd="123456";
+
+
+    psql=QSqlDatabase::addDatabase("QPSQL","default_psql");
+    psql.setHostName(host);
+    psql.setUserName(userName);
+    psql.setPassword(password);
+    psql.setDatabaseName(databaseName);
+
+    if(!psql.open()){
+        qDebug()<<psql.lastError().text();
+    }
+
+}
+
+DbHandler::DbHandler(QString connectionName,QString host, QString userName, QString password, QString databaseName)
+{
+
+
+    psql=QSqlDatabase::addDatabase("QPSQL",connectionName);
+    psql.setHostName(host);
+    psql.setUserName(userName);
+    psql.setPassword(password);
+    psql.setDatabaseName(databaseName);
+
+    if(!psql.open()){
+        qDebug()<<psql.lastError().text();
+    }
+
+}
+
+DbHandler::DbHandler(QString mdbPath){
+    mdb=QSqlDatabase::addDatabase("QODBC","default_mdb");
+    mdb.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+mdbPath);
+    if(!mdb.open()){
+        qDebug()<<mdb.lastError().text();
+    }
 }
 
 DbHandler::~DbHandler()
 {
-
+    closeDb();
 }
 
-QSqlDatabase DbHandler::connectToMdb(QString fullPath, QString connectionName){
-    QSqlDatabase qsd = QSqlDatabase::addDatabase("QODBC", connectionName);
-    qsd.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+fullPath);
-    if(!qsd.open()){
-            qDebug()<<qsd.lastError().text();
+
+
+void DbHandler::closeDb(){
+    if(psql.isOpen()){
+       psql.close();
     }
-
-    return qsd;
-}
-
-void DbHandler::closeDb(QSqlDatabase qsd){
-    if(qsd.isOpen()){
-       qsd.close();
+    if(mdb.isOpen()){
+        mdb.close();
     }
 }
 
-QSqlQuery DbHandler::executeQuery(QSqlDatabase qsd, QString query){
-    QSqlQuery qsq = qsd.exec(query);
-    if(!qsq.isValid()){
-        qsd.lastError().text();
+QSqlQuery DbHandler::executeQuery(int BASE, QString query){
+    switch (BASE) {
+    case 1:
+        req = mdb.exec(query);
+        break;
+    case 2:
+        req = psql.exec(query);
+        break;
     }
-    return qsq;
-
-}
-
-QSqlDatabase DbHandler::connectToPostgresServer(QString connectionName){
-    QSqlDatabase qsd =QSqlDatabase::addDatabase("QPSQL", connectionName);
-    qsd.setUserName(userName);
-    qsd.setPassword(pwd);
-    qsd.setHostName(host);
-    qsd.setDatabaseName(database);
-
-    if(!qsd.open()){
-        qDebug()<< qsd.lastError().text();
-        qDebug() << "Connexion à la base non réalisée";
+    if(!req.isActive()){
+        qDebug()<<req.lastError().text();
     }
-    return qsd;
+
+    return req;
+
 }
 
-void DbHandler::setDatabase(QString database){
-    this->database=database;
-}
-
-void DbHandler::setHost(QString host){
-    this->host=host;
-}
-
-void DbHandler::setUserName(QString userName){
-    this->userName=userName;
-}
-
-void DbHandler::setPassword(QString pwd){
-    this->pwd=pwd;
-}
