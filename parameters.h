@@ -9,10 +9,21 @@ public:
     Parameters();
     ~Parameters();
 
-    static QString getNro();
-    static void setNro();
+     QString getNro();
+     QString getHost();
+     QString getUserName();
+     QString getPassword();
+     QString getDatabaseName();
+     void setNro(QString);
+
 private:
-    QString nro;
+     void initialize();
+     QString nro;
+     QString host;
+     QString userName;
+     QString password;
+     QString databaseName;
+
 };
 
 #endif // PARAMETERS_H
