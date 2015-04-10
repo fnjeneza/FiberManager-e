@@ -24,7 +24,6 @@ SOURCES += main.cpp \
     fmgishandler.cpp \
     optique.cpp \
     mainwindow.cpp \
-    ie_form.cpp \
     doe_gc.cpp \
     handler/database/mdbhandler.cpp \
     handler/database/psqldatabase.cpp \
@@ -40,7 +39,6 @@ HEADERS += \
     fmgishandler.h \
     optique.h \
     mainwindow.h \
-    ie_form.h \
     doe_gc.h \
     handler/database/mdbhandler.h \
     handler/database/psqldatabase.h \
@@ -51,7 +49,6 @@ HEADERS += \
 
 FORMS += \
     mainwindow.ui \
-    ie_form.ui \
     doe_gc.ui \
     ui/config.ui \
     ui/mainfm.ui
