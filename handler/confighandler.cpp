@@ -82,3 +82,47 @@ void ConfigHandler::removeConfig(FMConfigDAO config){
         qDebug()<<q.lastError().text();
     }
 }
+
+FMConfigDAO ConfigHandler::getConfiguration(QString project_id){
+    QString query = "SELECT * FROM connexion WHERE project_id='"+project_id+"'";
+    QSqlQuery q = database.exec(query);
+    FMConfigDAO config;
+    if(q.next()){
+        config=FMConfigDAO(q.value("project_id").toString(),
+                                       q.value("nro").toString(),
+                                       q.value("plaque").toString(),
+                                       q.value("ext").toString(),
+                                       q.value("db_name").toString(),
+                                       q.value("host").toString(),
+                                       q.value("port").toString(),
+                                       q.value("username").toString(),
+                                       q.value("password").toString(),
+                                       q.value("optique").toString(),
+                                       q.value("infra").toString(),
+                                       q.value("site").toString());
+    }
+
+    return config;
+
+}
+
+void ConfigHandler::update(FMConfigDAO config){
+    QString query = "UPDATE connexion set "
+                    "nro='"+config.getNro()+"',"
+                    "plaque='"+config.getPlaque()+"',"
+                    "ext='"+config.getExt()+"',"
+                    "db_name='"+config.getBase()+"',"
+                    "host='"+config.getHost()+"',"
+                    "port='"+config.getPort()+"',"
+                    "username='"+config.getUserName()+"',"
+                    "password='"+config.getPassword()+"',"
+                    "optique='"+config.getOptique()+"',"
+                    "infra='"+config.getInfra()+"',"
+                    "site='"+config.getSite()+"'"
+                    "WHERE project_id='"+config.getProjectId()+"'";
+    QSqlQuery q = database.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+
+}

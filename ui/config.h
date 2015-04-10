@@ -33,6 +33,8 @@ private slots:
 
     void on_browseOptique_clicked();
 
+    void on_editConfig_clicked();
+
 private:
     Ui::Config *ui;
     ConfigHandler *configHandler;

@@ -52,6 +52,10 @@ void Config::on_save_clicked()
                                         ui->optique->text(),
                                         ui->infra->text(),
                                         ui->site->text());
+    if(configHandler->exists(newConfig)){
+        configHandler->update(newConfig);
+        return;
+    }
 
     configHandler->addConfig(newConfig);
     ui->projectId->clear();
@@ -75,4 +79,22 @@ void Config::on_browseOptique_clicked()
     QString fileName = QFileDialog::getOpenFileName(this,
         tr("Optique"), ".", tr("Base mdb (*.mdb)"));
     ui->optique->setText(fileName);
+}
+
+void Config::on_editConfig_clicked()
+{
+
+    FMConfigDAO config = configHandler->getConfiguration(ui->projectId->currentText());
+    ui->id->setText(config.getProjectId());
+    ui->nro->setText(config.getNro());
+    ui->plaque->setText(config.getPlaque());
+    ui->ext->setText(config.getExt());
+    ui->databaseName->setText(config.getBase());
+    ui->host->setText(config.getHost());
+    ui->port->setText(config.getPort());
+    ui->userName->setText(config.getUserName());
+    ui->pwd->setText(config.getPassword());
+    ui->optique->setText(config.getOptique());
+    ui->infra->setText(config.getInfra());
+    ui->site->setText(config.getSite());
 }

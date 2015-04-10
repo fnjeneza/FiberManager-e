@@ -16,10 +16,11 @@ public:
     ~ConfigHandler();
 
     QStringList retrieveAllProjectId();
-    FMConfigDAO getConfig(QString project_id);
+    FMConfigDAO getConfiguration(QString project_id);
     void addConfig(FMConfigDAO);
     void removeConfig(FMConfigDAO);
     bool exists(FMConfigDAO);
+    void update(FMConfigDAO);
 
 private:
     void connect();
