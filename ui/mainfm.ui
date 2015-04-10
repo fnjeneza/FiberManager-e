@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainFM</class>
+ <widget class="QMainWindow" name="MainFM">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFichier">
+    <property name="title">
+     <string>Fichier</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuEdition">
+    <property name="title">
+     <string>Edition</string>
+    </property>
+    <widget class="QMenu" name="menuExporter">
+     <property name="title">
+      <string>Exporter</string>
+     </property>
+     <addaction name="actionFLR"/>
+     <addaction name="actionMat_riel"/>
+    </widget>
+    <widget class="QMenu" name="menuImporter">
+     <property name="title">
+      <string>Importer</string>
+     </property>
+     <addaction name="actionInfra"/>
+     <addaction name="actionOptique"/>
+    </widget>
+    <addaction name="menuImporter"/>
+    <addaction name="menuExporter"/>
+   </widget>
+   <widget class="QMenu" name="menuAudit">
+    <property name="title">
+     <string>Audit</string>
+    </property>
+    <widget class="QMenu" name="menuBase">
+     <property name="title">
+      <string>Base</string>
+     </property>
+     <addaction name="actionInfra_2"/>
+     <addaction name="actionOptique_2"/>
+     <addaction name="actionInfra_Optique"/>
+    </widget>
+    <widget class="QMenu" name="menuDOE">
+     <property name="title">
+      <string>DOE</string>
+     </property>
+     <addaction name="actionCTR"/>
+     <addaction name="actionGC"/>
+    </widget>
+    <addaction name="menuBase"/>
+    <addaction name="menuDOE"/>
+   </widget>
+   <widget class="QMenu" name="menuBase_de_donn_es">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="actionBdd"/>
+   </widget>
+   <widget class="QMenu" name="menuA_propos">
+    <property name="title">
+     <string>A propos</string>
+    </property>
+   </widget>
+   <addaction name="menuFichier"/>
+   <addaction name="menuEdition"/>
+   <addaction name="menuAudit"/>
+   <addaction name="menuBase_de_donn_es"/>
+   <addaction name="menuA_propos"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionFLR">
+   <property name="text">
+    <string>FLR</string>
+   </property>
+  </action>
+  <action name="actionMat_riel">
+   <property name="text">
+    <string>Matériel</string>
+   </property>
+  </action>
+  <action name="actionInfra">
+   <property name="text">
+    <string>Infra</string>
+   </property>
+  </action>
+  <action name="actionOptique">
+   <property name="text">
+    <string>Optique</string>
+   </property>
+  </action>
+  <action name="actionInfra_2">
+   <property name="text">
+    <string>Infra</string>
+   </property>
+  </action>
+  <action name="actionOptique_2">
+   <property name="text">
+    <string>Optique</string>
+   </property>
+  </action>
+  <action name="actionInfra_Optique">
+   <property name="text">
+    <string>Infra+Optique</string>
+   </property>
+  </action>
+  <action name="actionCTR">
+   <property name="text">
+    <string>CTR</string>
+   </property>
+  </action>
+  <action name="actionGC">
+   <property name="text">
+    <string>GC</string>
+   </property>
+  </action>
+  <action name="actionBdd">
+   <property name="text">
+    <string>Base de données</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
