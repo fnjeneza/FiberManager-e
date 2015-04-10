@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <QWidget>
+#include <QFileDialog>
 #include "handler/confighandler.h"
 
 namespace Ui {
@@ -29,6 +30,8 @@ private slots:
     void on_save_clicked();
 
     void on_deleteConfig_clicked();
+
+    void on_browseOptique_clicked();
 
 private:
     Ui::Config *ui;

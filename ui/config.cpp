@@ -69,3 +69,10 @@ void Config::on_deleteConfig_clicked()
     ui->projectId->addItems(configHandler->retrieveAllProjectId());
 
 }
+
+void Config::on_browseOptique_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+        tr("Optique"), ".", tr("Base mdb (*.mdb)"));
+    ui->optique->setText(fileName);
+}
