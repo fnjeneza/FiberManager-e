@@ -20,7 +20,6 @@ TEMPLATE = app
 SOURCES += main.cpp \
     dbhandler.cpp \
     fmprocedure.cpp \
-    address.cpp \
     fmgishandler.cpp \
     optique.cpp \
     doe_gc.cpp \
@@ -34,7 +33,6 @@ SOURCES += main.cpp \
 HEADERS += \
     dbhandler.h \
     fmprocedure.h \
-    address.h \
     fmgishandler.h \
     optique.h \
     doe_gc.h \
