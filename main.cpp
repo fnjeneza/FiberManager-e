@@ -3,7 +3,6 @@
 #include "fmprocedure.h"
 #include "fmgishandler.h"
 #include "optique.h"
-#include "mainwindow.h"
 
 #include "ui/mainfm.h"
 
