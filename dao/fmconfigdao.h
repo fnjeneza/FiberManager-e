@@ -26,6 +26,7 @@ public:
 
     void setProjectId(QString projectId);
     void setNro(QString nro);
+    void setBase(QString base);
     void setPlaque(QString plaque);
     void setExt(QString ext);
     void setHost(QString host);
