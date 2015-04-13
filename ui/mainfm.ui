@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>FiberManager-e</string>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
@@ -40,11 +40,22 @@
      <addaction name="actionMat_riel"/>
     </widget>
     <widget class="QMenu" name="menuImporter">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="title">
       <string>Importer</string>
      </property>
+     <widget class="QMenu" name="menuDans_optique">
+      <property name="title">
+       <string>Dans optique</string>
+      </property>
+      <addaction name="actionSites"/>
+      <addaction name="actionLTA"/>
+     </widget>
      <addaction name="actionInfra"/>
      <addaction name="actionOptique"/>
+     <addaction name="menuDans_optique"/>
     </widget>
     <addaction name="menuImporter"/>
     <addaction name="menuExporter"/>
@@ -54,14 +65,21 @@
      <string>Audit</string>
     </property>
     <widget class="QMenu" name="menuBase">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="title">
       <string>Base</string>
      </property>
      <addaction name="actionInfra_2"/>
      <addaction name="actionOptique_2"/>
      <addaction name="actionInfra_Optique"/>
+     <addaction name="actionCasage"/>
     </widget>
     <widget class="QMenu" name="menuDOE">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="title">
       <string>DOE</string>
      </property>
@@ -77,16 +95,10 @@
     </property>
     <addaction name="actionBdd"/>
    </widget>
-   <widget class="QMenu" name="menuA_propos">
-    <property name="title">
-     <string>A propos</string>
-    </property>
-   </widget>
    <addaction name="menuFichier"/>
    <addaction name="menuEdition"/>
    <addaction name="menuAudit"/>
    <addaction name="menuBase_de_donn_es"/>
-   <addaction name="menuA_propos"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionFLR">
@@ -95,6 +107,9 @@
    </property>
   </action>
   <action name="actionMat_riel">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Matériel</string>
    </property>
@@ -137,6 +152,21 @@
   <action name="actionBdd">
    <property name="text">
     <string>Base de données</string>
+   </property>
+  </action>
+  <action name="actionSites">
+   <property name="text">
+    <string>Sites</string>
+   </property>
+  </action>
+  <action name="actionLTA">
+   <property name="text">
+    <string>LTA</string>
+   </property>
+  </action>
+  <action name="actionCasage">
+   <property name="text">
+    <string>Casage</string>
    </property>
   </action>
  </widget>

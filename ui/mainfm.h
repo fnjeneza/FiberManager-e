@@ -4,7 +4,8 @@
 #include <QMainWindow>
 
 #include "config.h"
-
+#include "handler/database/mdbhandler.h"
+#include "handler/database/psqldatabase.h"
 namespace Ui {
 class MainFM;
 }
@@ -16,14 +17,25 @@ class MainFM : public QMainWindow
 public:
     explicit MainFM(QWidget *parent = 0);
     ~MainFM();
+    void psqlConnect();
 
 
 private slots:
     void on_actionBdd_triggered();
 
+    void on_actionSites_triggered();
+
+    void on_actionFLR_triggered();
+
+    void on_actionCasage_triggered();
+
 private:
     Ui::MainFM *ui;
-    Config *config;
+    Config *config=NULL;
+    MdbHandler *mdb=NULL;
+    PsqlDatabase *psql=NULL;
+    FMConfigDAO pref;
+    bool prefSet;
 };
 
 #endif // MAINFM_H
