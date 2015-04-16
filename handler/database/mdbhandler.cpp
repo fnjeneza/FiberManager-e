@@ -9,24 +9,115 @@ MdbHandler::~MdbHandler()
 {
     infra_db.close();
     optique_db.close();
+    site_db.close();
 }
 
 
-void MdbHandler::connect(QString ConnectionName){
-    optique_db = QSqlDatabase::addDatabase("QODBC", ConnectionName);
-    optique_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+optique);
-    if(!optique_db.open()){
-        qDebug()<<optique_db.lastError().text();
-    }
+//void MdbHandler::connect(QString ConnectionName){
+//    optique_db = QSqlDatabase::addDatabase("QODBC", ConnectionName);
+//    optique_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+optique);
+//    if(!optique_db.open()){
+//        qDebug()<<optique_db.lastError().text();
+//    }
+//    optique_db = QSqlDatabase::addDatabase("QODBC", ConnectionName);
+//    optique_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+site);
+//    if(!optique_db.open()){
+//        qDebug()<<optique_db.lastError().text();
+//    }
 
-}
+//}
 
 void MdbHandler::connect(){
-    optique_db = QSqlDatabase::addDatabase("QODBC");
-    optique_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+optique);
-    if(!optique_db.open()){
-        qDebug()<<optique_db.lastError().text();
+
+    if(!optique.isEmpty()){
+        optique_db = QSqlDatabase::addDatabase("QODBC","optique" );
+        optique_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+optique);
+        if(!optique_db.open()){
+            qDebug()<<optique_db.lastError().text();
+        }
     }
+    else{
+        qDebug()<<"Chemin vers l'optique non défini";
+    }
+    if(!site.isEmpty()){
+        site_db = QSqlDatabase::addDatabase("QODBC", "site");
+        site_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+site);
+        if(!site_db.open()){
+            qDebug()<<site_db.lastError().text();
+        }
+    }
+    else{
+        qDebug()<<"Chemin vers Site non défini";
+    }
+    if(!infra.isEmpty()){
+        infra_db = QSqlDatabase::addDatabase("QODBC", "infra");
+        infra_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+infra);
+        if(!infra_db.open()){
+            qDebug()<<infra_db.lastError().text();
+        }
+    }
+    else{
+        qDebug()<<"Chemin vers Infra non défini";
+    }
+
+}
+QString MdbHandler::getInfraNoeudAdresse(QString noeud){
+    QString query = "select NUM_VOIE, RIVOLI from noeuds "
+                    "where NOEUD='"+noeud+"' AND DELETED<>'*'";
+    QSqlQuery q = infra_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QString adresse;
+    if(q.next()){
+        adresse = q.value("NUM_VOIE").toString().trimmed()+" "+
+                q.value("RIVOLI").toString().trimmed();
+    }
+    return adresse;
+}
+
+QString MdbHandler::getOptiqueNoeudAdresse(QString noeud){
+    QString query = "select NUM_VOIE, RIVOLI from noeuds "
+                    "where NOEUD='"+noeud+"' AND DELETED<>'*'";
+    QSqlQuery q = optique_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QString adresse;
+    if(q.next()){
+        adresse = q.value("NUM_VOIE").toString().trimmed()+" "+
+                q.value("RIVOLI").toString().trimmed();
+    }
+    return adresse;
+}
+
+QStringList MdbHandler::getAllOptiqueNoeud(){
+    QString query = "select NOEUD from noeuds "
+                    " where DELETED<>'*'";
+    QSqlQuery q = optique_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QStringList values;
+    while(q.next()){
+        values<<q.value("NOEUD").toString().trimmed();
+    }
+    return values;
+}
+
+QStringList MdbHandler::getAssociatedChambre(QString noeud){
+    QString query = "select CHAMBRE from affectat "
+                    "where NOEUD='"+noeud+"' AND DELETED<>'*'";
+    QSqlQuery q = infra_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QStringList values;
+    values.clear();
+    while(q.next()){
+        values<<q.value("CHAMBRE").toString();
+    }
+    return values;
 }
 
 void MdbHandler::setOptique(QString optique){
@@ -100,8 +191,10 @@ QStringList MdbHandler::tables(int schema){
         return optique_db.tables(QSql::Tables);
         break;
     default:
+        return QStringList();
         break;
     }
+
 }
 
 QString MdbHandler::structure(int schema, QString tableName){
@@ -185,4 +278,96 @@ void MdbHandler::updateSite(QString hexacle, QString num, QString suf, QString v
     qDebug()<<query;
 }
 
+QStringList MdbHandler::retrieveRivoliRecno(){
+    QString query = "select RECNO from rivoli";
+    QSqlQuery q = site_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QStringList values;
+    while(q.next()){
+        values<<q.value("RECNO").toString();
+    }
+    return values;
+}
+//QString MdbHandler::getVoie(QString rivoli){
+//    QString query = "select TYPE_VOIE, ARTICLE, DESIGNATIO from rivoli where RIVOLI='"+rivoli+"'";
+//    QSqlQuery q = site_db.exec(query);
+//    if(!q.isActive()){
+//        qDebug()<<q.lastError().text();
+//    }
+//    QString voie;
+//    if(q.next()){
+//        QString type_voie=q.value("TYPE_VOIE").toString().trimmed();
+//        QString article = q.value("ARTICLE").toString().trimmed();
+//        QString designatio = q.value("DESIGNATIO").toString().trimmed();
+//        voie = article.isEmpty()?type_voie+" "+designatio:type_voie+" "+article+" "+designatio;
+//        qDebug()<<voie;
+//    }
 
+//    return voie;
+//}
+
+//void MdbHandler::loadRivoli(){
+//    QString query = "SELECT RIVOLI, TYPE_VOIE, ARTICLE, DESIGNATIO FROM rivoli";
+//    QSqlQuery q = site_db.exec(query);
+//    if(!q.isActive()){
+//        qDebug()<<q.lastError().text();
+//    }
+//    if(q.next()){
+//        QString riv = q.value("RIVOLI").toString();
+//        QString voie = getVoie(riv);
+//        rivoli.insert(riv, voie);
+//    }
+//}
+
+
+bool MdbHandler::isZoneAvant(QString num, QString suf, QString voie){
+    QString query ;
+    QSqlQuery q ;
+    loadRivoli();
+    QString rivoli_ = rivoli.key(voie);
+
+    QString num_voie=QString(num+suf).trimmed();
+    query = "SELECT NUM_VOIE, RIVOLI from noeuds "
+            "where NOEUD_BIS LIKE 'SIT%' "
+            "AND RIVOLI='"+rivoli_+"' "
+            "AND NUM_VOIE='"+num_voie+"'";
+    q = optique_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    return q.next();
+}
+
+bool MdbHandler::isVoieExists(QString voie){
+    return (rivoli.value(voie)).isEmpty()?false:true;
+}
+
+//QString MdbHandler::getRivoli(QString voie){
+//    if(!isRivoliLoaded){
+//        return rivoli.key(voie);
+//    }
+//}
+
+void MdbHandler::loadRivoli(){
+    if(!isRivoliLoaded){
+        qDebug()<<"Loading rivoli";
+        //load rivoli
+        QString query = "SELECT RIVOLI, TYPE_VOIE, ARTICLE, DESIGNATIO FROM rivoli";
+        QSqlQuery q = site_db.exec(query);
+        if(!q.isActive()){
+            qDebug()<<q.lastError().text();
+        }
+        while(q.next()){
+            QString riv = q.value("RIVOLI").toString().trimmed();
+            QString type_voie=q.value("TYPE_VOIE").toString().trimmed();
+            QString article = q.value("ARTICLE").toString().trimmed();
+            QString designatio = q.value("DESIGNATIO").toString().trimmed();
+            QString voie = article.isEmpty()?type_voie+" "+designatio:type_voie+" "+article+" "+designatio;
+            rivoli.insert(riv, voie);
+        }
+        isRivoliLoaded=true;
+        qDebug()<<"Rivoli loaded";
+    }
+}

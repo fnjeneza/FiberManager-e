@@ -27,16 +27,30 @@ public:
     void updateSite(QString hexacle, QString num, QString suf, QString voie, QString code_postal, QString commune, int bal, QString x, QString y);
     QString nextRecno(QString tableName);
     QString nextSiteNumber();
+    QStringList retrieveRivoliRecno();
+    bool isZoneAvant(QString num, QString suf, QString voie);
+    bool isVoieExists(QString voie);
+    QStringList getAssociatedChambre(QString noeud);
+    QString getInfraNoeudAdresse(QString noeud);
+    QString getOptiqueNoeudAdresse(QString noeud);
+    QStringList getAllOptiqueNoeud();
 
 private:
     QSqlDatabase infra_db;
     QSqlDatabase optique_db;
+    QSqlDatabase site_db;
+
     QString infra;
     QString optique;
     QString site;
 
+    QMap<QString,QString> rivoli;
+    bool isRivoliLoaded=false;
+
+
     QString lastRecno(QString tableName);
     QString lastSiteNumber();
+    void loadRivoli();
 };
 
 #endif // MDBHANDLER_H
