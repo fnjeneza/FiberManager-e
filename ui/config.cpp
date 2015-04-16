@@ -26,12 +26,8 @@ void Config::on_connect_clicked()
         qDebug()<<"Connexion impossible, le nom est vide";
         return;
     }
+    setConfig(configHandler->getConfiguration(projectId));
 }
-
-FMConfigDAO Config::getConfig(){
-    return config;
-}
-
 
 void Config::on_newConfig_clicked()
 {
@@ -74,10 +70,15 @@ void Config::on_deleteConfig_clicked()
 
 }
 
+
+
 void Config::on_browseOptique_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
         tr("Optique"), ".", tr("Base mdb (*.mdb)"));
+    if(fileName.isEmpty()){
+        return;
+    }
     ui->optique->setText(fileName);
 }
 
@@ -97,4 +98,13 @@ void Config::on_editConfig_clicked()
     ui->optique->setText(config.getOptique());
     ui->infra->setText(config.getInfra());
     ui->site->setText(config.getSite());
+}
+FMConfigDAO Config::getConfig() const
+{
+    return config;
+}
+
+void Config::setConfig(const FMConfigDAO &value)
+{
+    config = value;
 }

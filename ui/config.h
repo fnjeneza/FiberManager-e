@@ -17,10 +17,13 @@ public:
     explicit Config(QWidget *parent = 0);
     ~Config();
 
-    FMConfigDAO retrieve(QString project_id);
     void remove(QString project_id);
-    FMConfigDAO getConfig();
 
+
+    FMConfigDAO getConfig() const;
+    void setConfig(const FMConfigDAO &value);
+
+    bool isSet();
 
 private slots:
     void on_connect_clicked();
