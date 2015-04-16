@@ -11,34 +11,46 @@ public:
                 QString userName, QString password, QString optique, QString infra, QString site);
     ~FMConfigDAO();
 
-    QString getProjectId();
-    QString getNro();
-    QString getPlaque();
-    QString getExt();
-    QString getHost();
-    QString getPort();
-    QString getUserName();
-    QString getPassword();
-    QString getOptique();
-    QString getInfra();
-    QString getSite();
-    QString getBase();
 
-    void setProjectId(QString projectId);
-    void setNro(QString nro);
-    void setBase(QString base);
-    void setPlaque(QString plaque);
-    void setExt(QString ext);
-    void setHost(QString host);
-    void setPort(QString port);
-    void setUserName(QString userName);
-    void setPassword(QString password);
-    void setOptique(QString optique);
-    void setInfra(QString infra);
-    void setSite(QString site);
+
+    QString getProjectId() const;
+    void setProjectId(const QString &value);
+
+    QString getNro() const;
+    void setNro(const QString &value);
+
+    QString getPlaque() const;
+    void setPlaque(const QString &value);
+
+    QString getExt() const;
+    void setExt(const QString &value);
+
+    QString getBase() const;
+    void setBase(const QString &value);
+
+    QString getHost() const;
+    void setHost(const QString &value);
+
+    QString getPort() const;
+    void setPort(const QString &value);
+
+    QString getUserName() const;
+    void setUserName(const QString &value);
+
+    QString getPassword() const;
+    void setPassword(const QString &value);
+
+    QString getOptique() const;
+    void setOptique(const QString &value);
+
+    QString getInfra() const;
+    void setInfra(const QString &value);
+
+    QString getSite() const;
+    void setSite(const QString &value);
 
 private:
-    QString project_id;
+    QString projectId;
     QString nro;
     QString plaque;
     QString ext;
