@@ -6,7 +6,6 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QSqlRecord>
-#include <QProgressDialog>
 
 
 class PsqlDatabase
@@ -20,8 +19,15 @@ public:
     QStringList columns(QString tableName);
     QStringList lr(QString hexacle, QString num, QString suf, QString voie);
     QStringList retrieveAdresses();
-    QStringList adressesWithoutHexacode();
-    QStringList invalidADresses();
+
+    QStringList getAllHexacles();
+    QStringList getSite(QString hexacle);
+    QString getParcelle(QString hexacle);
+    QStringList infoRue(QString voie);
+    QStringList multipleHexacleOccurence();
+    QString getPoche(QString hexacle);
+    QString getPm(QString hexacle);
+
 
 
     QString getHost() const;

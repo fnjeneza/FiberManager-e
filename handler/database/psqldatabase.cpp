@@ -40,7 +40,7 @@ QStringList PsqlDatabase::columns(QString tableName){
  * @return
  */
 QStringList PsqlDatabase::retrieveAdresses(){
-    QString query  = "select code, num, suf, voie from flr";
+    QString query  = "select code, num, suf, voie from casage";
     QSqlQuery q = psql.exec(query);
     if(!q.isActive()){
         qDebug()<<q.lastError().text();
@@ -233,36 +233,148 @@ void PsqlDatabase::setNro(const QString &value)
     nro = value;
 }
 
-QStringList PsqlDatabase::adressesWithoutHexacode(){
-    QString query = "SELECT num, suf, voie FROM casage where code is null";
+//QStringList PsqlDatabase::adressesWithoutHexacode(){
+//    QString query = "SELECT num, suf, voie FROM casage where code is null";
+//    QSqlQuery q = psql.exec(query);
+//    QStringList values;
+
+//    if(!q.isActive()){
+//        qDebug()<<q.lastError().text();
+//    }
+//    while(q.next()){
+//        values<<"Hexacle non renseigné;"<<q.value("num").toString()+";"+q.value("suf").toString()+";"+q.value("voie").toString();
+//    }
+//    return values;
+
+//}
+
+
+
+QStringList PsqlDatabase::getAllHexacles(){
+    QString query = "select code from casage";
     QSqlQuery q = psql.exec(query);
     QStringList values;
-
     if(!q.isActive()){
         qDebug()<<q.lastError().text();
     }
     while(q.next()){
-        values<<"Hexacle non renseigné;"<<q.value("num").toString()+";"+q.value("suf").toString()+";"+q.value("voie").toString();
+        values<<q.value(0).toString();
     }
     return values;
-
 }
 
-QStringList PsqlDatabase::invalidADresses(){
-    QString query = "select code from casage where num is null or voie=''";
+QStringList PsqlDatabase::getSite(QString hexacle){
+    QString query ="select num, suf, voie, code_postal, ville, nbre_foyer, boite_rattachement, adduction, concessionnaire, ST_X(the_geom) as x, ST_Y(the_geom) as y, commentaire "
+                   "from casage "
+                   "where code='"+hexacle+"'";
     QSqlQuery q = psql.exec(query);
-    QStringList values;
-    if(!q.isValid()){
+    if(!q.isActive()){
         qDebug()<<q.lastError().text();
     }
+    QStringList values;
+    if(q.next()){
+        QString x = q.value("x").toString();
+        QString y = q.value("y").toString();
+        QString commentaire = q.value("commentaire").toString().replace(";",",");
+        x = x.left(x.indexOf(".")+4);
+        y = y.left(y.indexOf(".")+4);
+        values<<q.value("num").toString()
+             <<q.value("suf").toString().toUpper()
+             <<q.value("voie").toString().toUpper()
+             <<q.value("code_postal").toString()
+             <<q.value("ville").toString().toUpper()
+             <<q.value("nbre_foyer").toString()
+             <<q.value("boite_rattachement").toString().replace(";",",")
+            <<q.value("adduction").toString()
+            <<q.value("concessionnaire").toString()
+          <<x
+         <<y
+        <<commentaire;
+    }
+    return values;
+}
+
+QString PsqlDatabase::getPm(QString hexacle){
+    QString query = "select reference, nombre_de_logements from pm where hexacle='"+hexacle+"'";
+    QSqlQuery q = psql.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QString ref;
+    int lr;
     while(q.next()){
-        values<<"Adresse incorrecte;"<<q.value("code").toString();
+        if(ref.isEmpty()){
+            ref=q.value("reference").toString();
+            lr = q.value("nombre_de_logements").toInt();
+        }else{
+            ref=ref+", "+q.value("reference").toString();
+            lr = lr+q.value("nombre_de_logements").toInt();
+        }
+    }
+    if(!ref.isEmpty()){
+        return ref+";"+QString::number(lr);
+    }
+    return QString();
+}
+
+QString PsqlDatabase::getParcelle(QString hexacle){
+    QString query = "select num_parcelle from casage, parcelle "
+                    "where st_intersects(parcelle.the_geom, casage.the_geom) and code='"+hexacle+"'";
+    QSqlQuery q = psql.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    if(q.next()){
+        return q.value("num_parcelle").toString();
+    }
+    return QString();
+}
+
+QStringList PsqlDatabase::multipleHexacleOccurence(){
+    QString query = "select code "
+                    "from (select code, count(code) from casage group by code) occurs "
+                    "where occurs.count>1";
+    QSqlQuery q = psql.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QStringList values;
+    while(q.next()){
+        values<<q.value("code").toString();
     }
     return values;
 }
 
 
+QStringList PsqlDatabase::infoRue(QString voie){
+    QString query = "select type_chaussee, anc_chaussee, type_trottoir, anc_trottoir, gestionnaire "
+                    "from voirie where voie='"+voie+"'";
+    QSqlQuery q = psql.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
 
+    if(q.next()){
+        return QStringList()<<q.value("type_chaussee").toString()
+                    <<q.value("anc_chaussee").toString()
+                   <<q.value("type_trottoir").toString()
+                  <<q.value("anc_trottoir").toString()
+                 <<q.value("gestionnaire").toString();
 
+    }
+    return QStringList()<<""<<""<<""<<""<<"";
+}
 
-
+QString PsqlDatabase::getPoche(QString hexacle){
+    QString query = "Select poche from poche, casage "
+                    "where st_intersects(casage.the_geom, poche.the_geom) "
+                    "AND code='"+hexacle+"'";
+    QSqlQuery q = psql.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    if(q.next()){
+        return q.value("poche").toString();
+    }
+    return QString();
+}
