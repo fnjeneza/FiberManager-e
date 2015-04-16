@@ -2,10 +2,13 @@
 #define MAINFM_H
 
 #include <QMainWindow>
+#include <QProgressDialog>
+#include <QMessageBox>
 
 #include "config.h"
 #include "handler/database/mdbhandler.h"
 #include "handler/database/psqldatabase.h"
+
 namespace Ui {
 class MainFM;
 }
@@ -28,6 +31,8 @@ private slots:
     void on_actionFLR_triggered();
 
     void on_actionCasage_triggered();
+
+    void on_actionAuditCorolle_triggered();
 
 private:
     Ui::MainFM *ui;

@@ -36,7 +36,6 @@
      <property name="title">
       <string>Exporter</string>
      </property>
-     <addaction name="actionFLR"/>
      <addaction name="actionMat_riel"/>
     </widget>
     <widget class="QMenu" name="menuImporter">
@@ -59,6 +58,7 @@
     </widget>
     <addaction name="menuImporter"/>
     <addaction name="menuExporter"/>
+    <addaction name="actionFLR"/>
    </widget>
    <widget class="QMenu" name="menuAudit">
     <property name="title">
@@ -71,9 +71,7 @@
      <property name="title">
       <string>Base</string>
      </property>
-     <addaction name="actionInfra_2"/>
-     <addaction name="actionOptique_2"/>
-     <addaction name="actionInfra_Optique"/>
+     <addaction name="actionAuditCorolle"/>
      <addaction name="actionCasage"/>
     </widget>
     <widget class="QMenu" name="menuDOE">
@@ -101,9 +99,23 @@
    <addaction name="menuBase_de_donn_es"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionCasage"/>
+   <addaction name="actionFLR"/>
+   <addaction name="actionSites"/>
+  </widget>
   <action name="actionFLR">
    <property name="text">
-    <string>FLR</string>
+    <string>Exporter FLR</string>
    </property>
   </action>
   <action name="actionMat_riel">
@@ -134,9 +146,9 @@
     <string>Optique</string>
    </property>
   </action>
-  <action name="actionInfra_Optique">
+  <action name="actionAuditCorolle">
    <property name="text">
-    <string>Infra+Optique</string>
+    <string>Audit Corolle</string>
    </property>
   </action>
   <action name="actionCTR">
@@ -166,7 +178,7 @@
   </action>
   <action name="actionCasage">
    <property name="text">
-    <string>Casage</string>
+    <string>Audit Casage</string>
    </property>
   </action>
  </widget>
