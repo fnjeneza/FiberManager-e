@@ -16,10 +16,12 @@ public:
 
     void connect(QString ConnectionName);
     void connect();
+    void disconnect();
     void setOptique(QString optique);
     void setInfra(QString infra);
     void setSite(QString site);
     bool siteExists(QString hexacle, QString num,QString suf, QString voie);
+    void setLindSite(QString recno, QString no, QString numSect, QString noeud);
     QStringList tables(int schema);
     QString structure(int schema, QString tableName);
     bool needUpdate(QString hexacle, QString num, QString suf, QString voie, int bal, QString x, QString y);
@@ -34,6 +36,14 @@ public:
     QString getInfraNoeudAdresse(QString noeud);
     QString getOptiqueNoeudAdresse(QString noeud);
     QStringList getAllOptiqueNoeud();
+    QString controlNommage(QString plaque, QString noeud);
+    QStringList getAllSite();
+    QStringList getCableAval(QString noeud);
+    QString getCableAmont(QString noeud);
+    QString getTranche(QString noeud);
+    bool cableHasCorrectExtremite(QString noeud);
+    bool cableHasOrigine(QString noeud);
+    QString getNoeudBis(QString noeud);
 
 private:
     QSqlDatabase infra_db;
