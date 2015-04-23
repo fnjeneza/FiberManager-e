@@ -45,20 +45,21 @@
      <property name="title">
       <string>Importer</string>
      </property>
-     <widget class="QMenu" name="menuDans_optique">
-      <property name="title">
-       <string>Dans optique</string>
-      </property>
-      <addaction name="actionSites"/>
-      <addaction name="actionLTA"/>
-     </widget>
-     <addaction name="actionInfra"/>
-     <addaction name="actionOptique"/>
-     <addaction name="menuDans_optique"/>
+     <addaction name="actionSites"/>
+     <addaction name="actionLTA"/>
+    </widget>
+    <widget class="QMenu" name="menuDOE_2">
+     <property name="title">
+      <string>DOE</string>
+     </property>
+     <addaction name="actionGC_2"/>
+     <addaction name="actionCTR_2"/>
     </widget>
     <addaction name="menuImporter"/>
     <addaction name="menuExporter"/>
     <addaction name="actionFLR"/>
+    <addaction name="actionMAJ_Base_CTR"/>
+    <addaction name="menuDOE_2"/>
    </widget>
    <widget class="QMenu" name="menuAudit">
     <property name="title">
@@ -93,10 +94,17 @@
     </property>
     <addaction name="actionBdd"/>
    </widget>
+   <widget class="QMenu" name="menuA_propos">
+    <property name="title">
+     <string>Aide</string>
+    </property>
+    <addaction name="actionA_propos"/>
+   </widget>
    <addaction name="menuFichier"/>
    <addaction name="menuEdition"/>
    <addaction name="menuAudit"/>
    <addaction name="menuBase_de_donn_es"/>
+   <addaction name="menuA_propos"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -110,8 +118,11 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionCasage"/>
+   <addaction name="actionAuditCorolle"/>
    <addaction name="actionFLR"/>
    <addaction name="actionSites"/>
+   <addaction name="actionLTA"/>
+   <addaction name="actionMAJ_Base_CTR"/>
   </widget>
   <action name="actionFLR">
    <property name="text">
@@ -168,17 +179,43 @@
   </action>
   <action name="actionSites">
    <property name="text">
-    <string>Sites</string>
+    <string>Importer sites</string>
+   </property>
+   <property name="toolTip">
+    <string>Importer sites dans l'optique</string>
    </property>
   </action>
   <action name="actionLTA">
    <property name="text">
-    <string>LTA</string>
+    <string>Associer LTA</string>
    </property>
   </action>
   <action name="actionCasage">
    <property name="text">
     <string>Audit Casage</string>
+   </property>
+  </action>
+  <action name="actionMAJ_Base_CTR">
+   <property name="text">
+    <string>MAJ Base CTR</string>
+   </property>
+  </action>
+  <action name="actionA_propos">
+   <property name="text">
+    <string>A propos</string>
+   </property>
+  </action>
+  <action name="actionGC_2">
+   <property name="text">
+    <string>GC</string>
+   </property>
+   <property name="toolTip">
+    <string>Génére l'arborescence DOE GC</string>
+   </property>
+  </action>
+  <action name="actionCTR_2">
+   <property name="text">
+    <string>CTR</string>
    </property>
   </action>
  </widget>

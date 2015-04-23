@@ -8,6 +8,8 @@
 #include "config.h"
 #include "handler/database/mdbhandler.h"
 #include "handler/database/psqldatabase.h"
+#include "execsqldialog.h"
+#include "doegcdlg.h"
 
 namespace Ui {
 class MainFM;
@@ -20,7 +22,8 @@ class MainFM : public QMainWindow
 public:
     explicit MainFM(QWidget *parent = 0);
     ~MainFM();
-    void psqlConnect();
+    void connect();
+    void disconnect();
 
 
 private slots:
@@ -34,13 +37,26 @@ private slots:
 
     void on_actionAuditCorolle_triggered();
 
+    void on_actionMAJ_Base_CTR_triggered();
+
+    void on_actionLTA_triggered();
+
+    void on_actionA_propos_triggered();
+
+    void on_actionGC_2_triggered();
+
 private:
     Ui::MainFM *ui;
     Config *config=NULL;
     MdbHandler *mdb=NULL;
     PsqlDatabase *psql=NULL;
     FMConfigDAO pref;
+    ExecSqlDialog *sqlDlg=NULL;
+    DOEGCdlg *doegc=NULL;
     bool prefSet;
+    QDialog *dlg;
+    QString shapePlaque;
+    QString numSect;
 };
 
 #endif // MAINFM_H

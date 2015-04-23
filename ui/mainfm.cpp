@@ -12,11 +12,15 @@ MainFM::MainFM(QWidget *parent) :
     pref.setPassword("123456");
     pref.setBase("PLA13_038");
     pref.setPlaque("PLA13_038");
+//    pref.setSite("H:\\MarseilleFree2014\\Bases\\Site.mdb");
+//    pref.setOptique("H:\\MarseilleFree2014\\PLA13_038_SLO13\\Optique\\Bases\\Secteur.mdb");
+//    pref.setInfra("H:\\MarseilleFree2014\\PLA13_038_SLO13\\Infra\\Bases\\Secteur.mdb");
     pref.setSite("T:\\test\\Bases\\Site.mdb");
     pref.setOptique("T:\\test\\PLA13_038_SLO13\\Optique\\Bases\\Secteur.mdb");
     pref.setInfra("T:\\test\\PLA13_038_SLO13\\Infra\\Bases\\Secteur.mdb");
     pref.setNro("SLO13");
-
+    shapePlaque = "plaque";
+    numSect = "D5B5";
 }
 
 MainFM::~MainFM()
@@ -33,6 +37,12 @@ MainFM::~MainFM()
     if(psql!=NULL){
         delete psql;
     }
+    if(sqlDlg!=NULL){
+        delete sqlDlg;
+    }
+    if(doegc!=NULL){
+        delete doegc;
+    }
 }
 
 void MainFM::on_actionBdd_triggered()
@@ -44,23 +54,63 @@ void MainFM::on_actionBdd_triggered()
 
 void MainFM::on_actionSites_triggered()
 {
-   psqlConnect();
+   connect();
    mdb->connect();
    psql->connect();
-   QStringList hexacles = psql->getAllHexacles();
 
-   psql->getSite("1321522ZNP");
-   qDebug()<<mdb->isZoneAvant("29","", "RUE SAINTE VICTORINE");
+   QProgressDialog progress(this);
+   progress.setLabelText("Import de sites...");
+   progress.setModal(true);
+   progress.setValue(0);
+
+   QStringList hexacles = psql->getAllHexaclesInPlaque(shapePlaque);
+   progress.setMaximum(hexacles.length());
+   for(int i=0; i<hexacles.length();i++){
+       progress.setValue(i);
+       if(hexacles.at(i).isEmpty()){
+           QMessageBox::warning(this, "Erreur adresse sans hexaclés","Présence d'adresse sans hexaclés, corriger ces erreurs avant import de sites");
+           return;
+       }
+   }
 
 
+   for(int i=0; i<hexacles.length(); i++){
+       progress.setValue(i);
+       if(progress.wasCanceled()){
+           progress.close();
+           break;
+       }
+       QStringList site = psql->getSite(hexacles.at(i));
+       QString recno=mdb->nextRecno("sites");
+       QString no = mdb->nextSiteNumber();
+       QString num = site.at(0);
+       QString suf = site.at(1);
+       QString voie = site.at(2);
+       QString code_postal = site.at(3);
+       QString ville = site.at(4);
+       int nbre_foyer = site.at(5).toInt();
+       //QString boite_rattachement = site.at(6);
+       QString x = site.at(9);
+       QString y = site.at(10);
+       mdb->addSite(recno, no, hexacles.at(i),
+                    num, suf, voie, code_postal,
+                    ville, nbre_foyer,x,y);
 
+   }
+    disconnect();
 
+}
+
+void MainFM::disconnect(){
+    mdb->disconnect();
+    psql->disconnect();
 }
 
 void MainFM::on_actionFLR_triggered()
 {
-
-    QFile csv(QDir::tempPath()+"/flr.csv");
+    QString path = QFileDialog::getSaveFileName(this, "Enregistrer le fichier","","Common Separated Value (*.csv)");
+    //QFile csv(QDir::tempPath()+"/flr.csv");
+    QFile csv(path);
     csv.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&csv);
     out<<"hexacle;adresse;nb_bal;phd;parcelle;zone;type_habitat;type_chausse;anc_chaussee;type_trottoir;anc_trottoir;gestionnaire;nro;poche;boite;adduction;concessionnaire;pm;lr_pm;commentaire\n";
@@ -84,7 +134,7 @@ void MainFM::on_actionFLR_triggered()
 //    psql->setPassword(pref.getPassword());
 
 
-    psqlConnect();
+    connect();
 
     psql->connect();
     mdb->connect();
@@ -93,7 +143,15 @@ void MainFM::on_actionFLR_triggered()
 
     QStringList hexacles = psql->getAllHexacles();
     int nb_site = hexacles.count();
+
     progress.setMaximum(nb_site);
+    for(int i=0; i<hexacles.length();i++){
+        progress.setValue(i);
+        if(hexacles.at(i).isEmpty()){
+            QMessageBox::warning(this, "Erreur adresse sans hexaclés","Présence d'adresse sans hexaclés, corriger ces erreurs avant import de sites");
+            return;
+        }
+    }
 
     for(int i=0; i<nb_site;i++){
 
@@ -145,9 +203,7 @@ void MainFM::on_actionFLR_triggered()
         QString gestionnaire = voirie.at(4);
 
         QString poche = psql->getPoche(hexacle);
-        if(poche.isEmpty()){
-            parcelle = "HORS PLAQUE";
-        }
+
         if(poche.toLower().compare("inexistant")==0){
             parcelle="ADRESSE INEXISTANTE";
         }
@@ -156,7 +212,23 @@ void MainFM::on_actionFLR_triggered()
             pm="PAS DE PM;0";
         }
         if(hexacle.toLower().contains("crea")){
-            parcelle="CREATION ADRESSE";
+            hexacle="";
+        }
+        if(poche.isEmpty()){
+            parcelle = "HORS PLAQUE";
+            densite="";
+            zone="";
+            habitat="";
+            type_ch="";
+            type_ch="";
+            type_tr="";
+            anc_tr="";
+            gestionnaire="";
+            nro="";
+            poche="";
+            boite="";
+            concessionnaire="";
+            adduction="";
         }
 
         QStringList line;
@@ -191,20 +263,46 @@ void MainFM::on_actionFLR_triggered()
 
 void MainFM::on_actionCasage_triggered()
 {
-    psqlConnect();
-    psql->connect();
 
+    connect();
+    psql->connect();
     QProgressDialog dlg(this);
     dlg.setModal(true);
     dlg.setLabelText("Audit casage...");
 
-    QFile csv(QDir::tempPath()+"/audit.csv");
+    QString path = QFileDialog::getSaveFileName(this, "Enregistrer le fichier","","CSV (*.csv)");
+
+    //QFile csv(QDir::tempPath()+"/audit.csv");
+    QFile csv(path);
     csv.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&csv);
+    out<<"erreur;hexacle/boîte\n";
     csv.flush();
 
+//    QStringList pmeExcedent = psql->getPME();
+//    if(pmeExcedent.length()>0){
+//        for(int i=0; i<pmeExcedent.length();i++){
+//            out<<"Plus de 100LR affectés au PME;"+pmeExcedent.at(i)+"\n";
+//        }
+//    }
+    QStringList pme=psql->getPME() ;
+    int length = pme.length();
+
+    for(int i =0; i<length;i++){
+        if(!pme.at(i).isEmpty()){
+            QStringList infoPme = pme.at(i).split(";");
+            if(infoPme.at(1).toInt()>100){
+                out<<"Plus de 100LR affectés au PME;"+infoPme.at(0)+";"+infoPme.at(1)+"\n";
+                continue;
+            }
+            out<<"info;"+infoPme.at(0)+";"+infoPme.at(1)+"\n";
+        }
+
+    }
+
+
     //retrieve hexacles
-    QStringList hexacles = psql->getAllHexacles();
+    QStringList hexacles = psql->getAllHexaclesInPlaque("plaque");
     int nb_sites = hexacles.count();
 
     dlg.setMaximum(nb_sites);
@@ -236,13 +334,14 @@ void MainFM::on_actionCasage_triggered()
         }
 
         //check if suf is valid
-        if(values.at(1).length()>1){
+        QString suf =values.at(1);
+        if(suf.length()>1){
             out<<"suf non valide;\""+hexacle+"\"\n";
         }
 
         //check if voie is valid
         QString voie = values.at(2);
-        if(voie.isEmpty()){
+        if(voie.isEmpty() || voie==""){
             if(!voieChecked.contains(voie)){
                 out<<"voie non valide;"+voie+";\""+hexacle+"\"\n";
                 voieChecked<<voie;
@@ -251,15 +350,18 @@ void MainFM::on_actionCasage_triggered()
         }
 
         //check if voie is present in Rivoli table
-        bool exists = mdb->isVoieExists(voie);
-        if(!exists){
-            if(!voieChecked.contains(voie)){
-                out<<"voie non présente dans rivoli;"+voie+"\n";
-                voieChecked<<voie;
-            }
-        }
 
-        //check if bal > 0
+//        bool exists = mdb->isVoieExists(voie);
+//        if(!exists){
+//            if(!voieChecked.contains(voie)){
+//                out<<"voie non présente dans rivoli;"+voie+"\n";
+//                voieChecked<<voie;
+//            }
+//        }
+
+
+
+        //check if bal < 0
         if(values.at(5).toInt()<=0){
             out<<"Une adresse existante ne peut avoir 0 LR;\""+hexacle+"\"\n";
         }
@@ -267,40 +369,47 @@ void MainFM::on_actionCasage_triggered()
         //nommage boite rattachement is correct
         QStringList boites = values.at(6).split(",");
         if(boites.at(0).isEmpty()){
-            out<<"boite de rattachement non renseigné;\""+hexacle+"\"\n";
+            out<<"boite de rattachement non renseignée;\""+hexacle+"\";"
+                 ""+psql->getPoche(hexacle)+"\n";
             boites.clear();
         }
         for(int i=0; i<boites.count();i++){
             QString boite = boites.at(i);
             int poche = psql->getPoche(hexacle).toInt();
             if(!boite.contains("PDB") && !boite.contains("BPI")){
-                out<<"nommage netgeo incorrect;"+boite+";\""+hexacle+"\"\n";
+                out<<"nommage netgeo de la boite de rattachement incorrect;"+boite+";\""+hexacle+"\"\n";
                 continue;
             }
             if(boite.contains("PDB")){
                 if(boite.length()!=19){
-                    out<<"nommage netgeo incorrect;"+boite+";\""+hexacle+"\"\n";
+                    out<<"nommage netgeo de la boite de rattachement incorrect;"+boite+";\""+hexacle+"\";"
+                        ""+QString::number(poche)+"\n";
                     continue;
                 }
                 if(boite.left(14).compare("PDB_"+pref.getPlaque()+"_")!=0){
-                    out<<"nommage netgeo incorrect;"+boite+";\""+hexacle+"\"\n";
+                    out<<"nommage netgeo de la boite de rattachement incorrect;"+boite+";\""+hexacle+"\";"
+                         ""+QString::number(poche)+"\n";
                     continue;
                 }
                 if(boite.right(5).left(2).toInt()!=poche){
-                    out<<"Incohérence de la poche pour la boite de rattachement et la poche de l'adresse;\""+hexacle+"\"\n";
+                    out<<"Incohérence de la poche pour la boite de rattachement et la poche de l'adresse;\""+hexacle+"\"; "
+                         ""+QString::number(poche)+"\n";
                 }
             }
             if(boite.contains("BPI")){
                 if(boite.length()!=24){
-                    out<<"nommage netgeo incorrect;"+boite+";\""+hexacle+"\"\n";
+                    out<<"nommage netgeo de la boite de rattachement incorrect;"+boite+";\""+hexacle+"\";"
+                         ""+QString::number(poche)+"\n";
                     continue;
                 }
                 if(boite.left(14).compare("BPI_SIT_"+pref.getNro()+"_")!=0){
-                    out<<"nommage netgeo incorrect;"+boite+";\""+hexacle+"\"\n";
+                    out<<"nommage netgeo de la boite de rattachement incorrect;"+boite+";\""+hexacle+"\";"
+                         ""+QString::number(poche)+"\n";
                     continue;
                 }
-                if(boite.right(5).left(2).toInt()!=poche){
-                    out<<"Incohérence de la poche pour la boite de rattachement et la poche de l'adresse;\""+hexacle+"\"\n";
+                if(boite.right(10).left(4).toInt()!=poche){
+                    out<<"Incohérence de la poche pour la boite de rattachement et la poche de l'adresse;\""+hexacle+"\";"
+                         ""+QString::number(poche)+"\n";
                 }
             }
         }
@@ -317,7 +426,7 @@ void MainFM::on_actionCasage_triggered()
         }
 
         QString concessionnaire = values.at(8).toLower();
-        if(concessionnaire.isEmpty()){
+        if(!concessionnaire.isEmpty()){
             if(concessionnaire.compare("communal")!=0 &&
                     concessionnaire.compare("fi")!=0 &&
                     concessionnaire.compare("ft")!=0 &&
@@ -329,12 +438,10 @@ void MainFM::on_actionCasage_triggered()
         csv.flush();
     }
     csv.close();
-
-    psql->multipleHexacleOccurence();
-
 }
 
-void MainFM::psqlConnect(){
+void MainFM::connect(){
+
     if(psql==NULL){
 
         psql = new PsqlDatabase();
@@ -342,47 +449,33 @@ void MainFM::psqlConnect(){
         psql->setDatabaseName(pref.getBase());
         psql->setUserName(pref.getUserName());
         psql->setPassword(pref.getPassword());
-        //psql->connect();
+//        psql->connect();
+
     }
     if(mdb==NULL){
         mdb=new MdbHandler();
         mdb->setSite(pref.getSite());
         mdb->setOptique(pref.getOptique());
         mdb->setInfra(pref.getInfra());
-
-        //mdb->connect();
+//        mdb->connect();
     }
 }
 
-//bool MainFM::isHexacleValid(QString hexacle){
-//    return hexacle.toString().isEmpty()?false:true;
-
-//}
-
-//bool MainFM::isNumValid(QString num){
-//    return num.toString().isEmpty()?false:true;
-//}
-
-//bool MainFM::isSufValid(QString suf){
-//    return suf.toString().isEmpty()?false:true;
-//}
-
-//bool MainFM::isVoieValid(QString voie){
-//    return voie.toString().isEmpty()?false:true;
-//}
-
 void MainFM::on_actionAuditCorolle_triggered()
 {
-    psqlConnect();
+    connect();
     mdb->connect();
-
+    QString path = QFileDialog::getSaveFileName(this, "Enregistrer le fichier","","CSV (*.csv)");
     QProgressDialog progress(this);
     progress.setLabelText("Audit Corolle...");
     progress.setModal(true);
+    progress.setValue(0);
 
-    QFile csv(QDir::tempPath()+"/auditCorolle.csv");
+//    QFile csv(QDir::tempPath()+"/auditCorolle.csv");
+    QFile csv(path);
     csv.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&csv);
+    out<<"erreur;noeud;poche\n";
     csv.flush();
 
     QStringList noeuds = mdb->getAllOptiqueNoeud();
@@ -398,6 +491,44 @@ void MainFM::on_actionAuditCorolle_triggered()
         if(chambre.isEmpty()){
             out<<"Noeud non associé à l'infra;"+noeud+"\n";
             continue;
+        }
+        int tranche = mdb->getTranche(noeud).toInt();
+        //traitement de cable
+        if(noeud.contains("L")){
+            int poche = noeud.left(3).right(2).toInt();
+            //int poche_ = mdb->getTranche(noeud).toInt();
+            if(poche!=tranche){
+                out<<"Incohérence du noeud et de la poche;"+noeud+";"+QString::number(tranche)+"\n";
+            }
+            if(!mdb->cableHasCorrectExtremite(noeud)){
+                out<<"Extrémité du noeud incorrecte;"+noeud+"\n";
+            }
+            if(!mdb->cableHasOrigine(noeud)){
+                out<<"Origine du noeud incorrecte;"+noeud+"\n";
+            }
+            QString noeudBis = mdb->getNoeudBis(noeud);
+            if(noeudBis.right(16).left(11).compare("_"+pref.getPlaque()+"_")!=0){
+                out<<"cable mal nommé; "+noeud+";"+noeudBis+";"+noeudBis.right(16)+"\n";
+            }
+            if(noeudBis.length()==6){
+                if(noeudBis.right(5).left(2).toInt()!=poche){
+                    out<<"Incohérence entre la poche du noeud et le nom du cable;"+noeud+";"+noeudBis+"\n";
+                }
+            }
+            if(noeud)
+
+        }
+        else{
+            int poche=0;
+            if(noeud.length()==5){
+                poche = noeud.left(2).toInt();
+            }
+            if(noeud.length()==4){
+                poche = noeud.left(1).toInt();
+            }
+            if(poche!=mdb->getTranche(noeud).toInt()){
+                out<<"Incohérence du noeud et de la poche;"+noeud+";"+QString::number(tranche)+"\n";
+            }
         }
         if(!noeud.contains("L") && chambre.length()>1){
             out<<"Multiple association du noeud à l'infra;"+noeud+";";
@@ -419,4 +550,80 @@ void MainFM::on_actionAuditCorolle_triggered()
 
 
 
+}
+
+void MainFM::on_actionMAJ_Base_CTR_triggered()
+{
+   sqlDlg = new ExecSqlDialog(this);
+
+    sqlDlg->show();
+}
+
+void MainFM::on_actionLTA_triggered()
+{
+    connect();
+    psql->connect();
+    mdb->connect();
+
+    QProgressDialog progress(this);
+    progress.setLabelText("Association LTA...");
+    progress.setModal(true);
+    progress.setValue(0);
+
+    QStringList sitesNo = mdb->getAllSite();
+    progress.setMaximum(sitesNo.length());
+    for(int i =0; i<sitesNo.length();i++){
+
+        progress.setValue(i);
+        if(progress.wasCanceled()){
+            progress.close();
+            break;
+        }
+
+
+        QStringList site = sitesNo.at(i).split(";");
+        QString recno = mdb->nextRecno("lindsite");
+        QString no = site.at(0);
+        QString hexacode = site.at(1);
+
+        QStringList  currentSite = psql->getSite(hexacode);
+        if(currentSite.isEmpty()){
+            continue;
+        }
+        QStringList boites = currentSite.at(6).split(";");
+
+        QString boite = boites.at(0).trimmed();
+        QString noeud="";
+        if(boite.contains("BPI")){
+            noeud=mdb->getCableAmont(QString::number(boite.right(10).left(7).toInt()));
+        }
+        if(boite.contains("PDB")){
+            noeud=QString::number(boite.right(5).toInt());
+            QStringList noeuds = mdb->getCableAval(noeud);
+            //test if noeud is not empty
+
+            if(noeuds.length()!=0){
+                noeud = noeuds.at(0);
+            }
+            else{
+                noeud="";
+            }
+        }
+        //insertion du site
+        mdb->setLindSite(recno, no,numSect, noeud);
+    }
+    disconnect();
+
+}
+
+void MainFM::on_actionA_propos_triggered()
+{
+    QMessageBox::information(this,"A propos","FiberManager-e\nApplication d'aide au contrôle de la base Corolle/Netgeo.\n\nCopyright Njeneza François.");
+}
+
+void MainFM::on_actionGC_2_triggered()
+{
+    doegc=new DOEGCdlg();
+    doegc->setModal(true);
+    doegc->show();
 }
