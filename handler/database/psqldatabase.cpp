@@ -18,9 +18,34 @@ void PsqlDatabase::connect(){
     psql.setDatabaseName(databaseName);
     psql.setUserName(userName);
     psql.setPassword(password);
+    if(!psql.isOpen()){
+        if(!psql.open()){
+            qDebug()<< psql.lastError().text();
+        }
+    }
 
-    if(!psql.open()){
-        qDebug()<< psql.lastError().text();
+}
+
+QStringList PsqlDatabase::getPME(){
+    QString query = "select boite_rattachement, sum(nbre_foyer) as total_lr "
+                    "from casage where boite_rattachement LIKE 'PDB%' "
+                    "group by boite_rattachement";
+    QSqlQuery q = psql.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QStringList values;
+    values.clear();
+    while(q.next()){
+        int total = q.value("total_lr").toInt();
+        values<<q.value("boite_rattachement").toString()+";"+QString::number(total);
+    }
+    return values;
+}
+
+void PsqlDatabase::disconnect(){
+    if(psql.isOpen()){
+        psql.close();
     }
 }
 
@@ -263,7 +288,23 @@ QStringList PsqlDatabase::getAllHexacles(){
     return values;
 }
 
+QStringList PsqlDatabase::getAllHexaclesInPlaque(QString shapePlaque){
+    QString query="select code from casage, \""+shapePlaque+"\" where st_intersects(casage.the_geom, \""+shapePlaque+"\".the_geom)";
+    QSqlQuery q = psql.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QStringList hexacles;
+    while(q.next()){
+        hexacles<<q.value("code").toString();
+    }
+    return hexacles;
+}
+
 QStringList PsqlDatabase::getSite(QString hexacle){
+    if(hexacle=="1321522NRL"){
+        qDebug()<<"";
+    }
     QString query ="select num, suf, voie, code_postal, ville, nbre_foyer, boite_rattachement, adduction, concessionnaire, ST_X(the_geom) as x, ST_Y(the_geom) as y, commentaire "
                    "from casage "
                    "where code='"+hexacle+"'";
@@ -276,17 +317,24 @@ QStringList PsqlDatabase::getSite(QString hexacle){
         QString x = q.value("x").toString();
         QString y = q.value("y").toString();
         QString commentaire = q.value("commentaire").toString().replace(";",",");
-        x = x.left(x.indexOf(".")+4);
-        y = y.left(y.indexOf(".")+4);
-        values<<q.value("num").toString()
-             <<q.value("suf").toString().toUpper()
-             <<q.value("voie").toString().toUpper()
-             <<q.value("code_postal").toString()
-             <<q.value("ville").toString().toUpper()
-             <<q.value("nbre_foyer").toString()
-             <<q.value("boite_rattachement").toString().replace(";",",")
-            <<q.value("adduction").toString()
-            <<q.value("concessionnaire").toString()
+        int index = x.indexOf(".");
+        if(index>0){
+            x = x.left(index+4);
+        }
+        index = y.indexOf(".");
+        if(index>0){
+            y = y.left(index+4);
+        }
+
+        values<<q.value("num").toString().trimmed()
+             <<q.value("suf").toString().toUpper().trimmed()
+             <<q.value("voie").toString().toUpper().trimmed()
+             <<q.value("code_postal").toString().trimmed()
+             <<q.value("ville").toString().toUpper().trimmed()
+             <<q.value("nbre_foyer").toString().trimmed()
+             <<q.value("boite_rattachement").toString().replace(";",",").trimmed()
+            <<q.value("adduction").toString().trimmed()
+            <<q.value("concessionnaire").toString().trimmed()
           <<x
          <<y
         <<commentaire;

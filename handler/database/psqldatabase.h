@@ -15,12 +15,15 @@ public:
     ~PsqlDatabase();
 
     void connect();
+    void disconnect();
     QString flr();
     QStringList columns(QString tableName);
     QStringList lr(QString hexacle, QString num, QString suf, QString voie);
     QStringList retrieveAdresses();
 
     QStringList getAllHexacles();
+    QStringList getAllHexaclesInPlaque(QString shapePlaque);
+    QStringList getPME();
     QStringList getSite(QString hexacle);
     QString getParcelle(QString hexacle);
     QStringList infoRue(QString voie);
