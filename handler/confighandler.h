@@ -7,7 +7,7 @@
 #include <QSqlError>
 #include <QDebug>
 
-#include "dao/fmconfigdao.h"
+#include "dao/parameters.h"
 
 class ConfigHandler
 {
@@ -16,11 +16,11 @@ public:
     ~ConfigHandler();
 
     QStringList retrieveAllProjectId();
-    FMConfigDAO getConfiguration(QString project_id);
-    void addConfig(FMConfigDAO);
-    void removeConfig(FMConfigDAO);
-    bool exists(FMConfigDAO);
-    void update(FMConfigDAO);
+    Parameters getConfiguration(QString project_id);
+    void addConfig(Parameters);
+    void removeConfig(Parameters);
+    bool exists(Parameters);
+    void update(Parameters);
 
 private:
     void connect();

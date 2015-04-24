@@ -51,7 +51,7 @@ void ConfigHandler::close(){
     database.close();
 }
 
-void ConfigHandler::addConfig(FMConfigDAO config){
+void ConfigHandler::addConfig(Parameters config){
 
     QString query = "INSERT INTO connexion (project_id, nro,plaque, ext, db_name, host, port,"
                     "username, password, optique, infra, site) VALUES('"+config.getProjectId()+"','"+config.getNro()+"',"
@@ -64,7 +64,7 @@ void ConfigHandler::addConfig(FMConfigDAO config){
     }
 }
 
-bool ConfigHandler::exists(FMConfigDAO config){
+bool ConfigHandler::exists(Parameters config){
     QString query = "SELECT project_id FROM connexion WHERE project_id='"+config.getProjectId()+"'";
     QSqlQuery q = database.exec(query);
     if(!q.isActive()){
@@ -75,7 +75,7 @@ bool ConfigHandler::exists(FMConfigDAO config){
     return false;
 }
 
-void ConfigHandler::removeConfig(FMConfigDAO config){
+void ConfigHandler::removeConfig(Parameters config){
     QString query = "DELETE FROM connexion WHERE project_id='"+config.getProjectId()+"'";
     QSqlQuery q = database.exec(query);
     if(!q.isActive()){
@@ -83,12 +83,12 @@ void ConfigHandler::removeConfig(FMConfigDAO config){
     }
 }
 
-FMConfigDAO ConfigHandler::getConfiguration(QString project_id){
+Parameters ConfigHandler::getConfiguration(QString project_id){
     QString query = "SELECT * FROM connexion WHERE project_id='"+project_id+"'";
     QSqlQuery q = database.exec(query);
-    FMConfigDAO config;
+    Parameters config;
     if(q.next()){
-        config=FMConfigDAO(q.value("project_id").toString(),
+        config=Parameters(q.value("project_id").toString(),
                                        q.value("nro").toString(),
                                        q.value("plaque").toString(),
                                        q.value("ext").toString(),
@@ -106,7 +106,7 @@ FMConfigDAO ConfigHandler::getConfiguration(QString project_id){
 
 }
 
-void ConfigHandler::update(FMConfigDAO config){
+void ConfigHandler::update(Parameters config){
     QString query = "UPDATE connexion set "
                     "nro='"+config.getNro()+"',"
                     "plaque='"+config.getPlaque()+"',"
