@@ -22,28 +22,31 @@ SOURCES += main.cpp \
     fmprocedure.cpp \
     fmgishandler.cpp \
     optique.cpp \
-    doe_gc.cpp \
     handler/database/mdbhandler.cpp \
     handler/database/psqldatabase.cpp \
-    ui/config.cpp \
     handler/confighandler.cpp \
-    dao/fmconfigdao.cpp \
-    ui/mainfm.cpp
+    ui/mainfm.cpp \
+    ui/execsqldialog.cpp \
+    ui/doegcdlg.cpp \
+    dao/parameters.cpp \
+    ui/configdialog.cpp
 
 HEADERS += \
     dbhandler.h \
     fmprocedure.h \
     fmgishandler.h \
     optique.h \
-    doe_gc.h \
     handler/database/mdbhandler.h \
     handler/database/psqldatabase.h \
-    ui/config.h \
     handler/confighandler.h \
-    dao/fmconfigdao.h \
-    ui/mainfm.h
+    ui/mainfm.h \
+    ui/execsqldialog.h \
+    ui/doegcdlg.h \
+    dao/parameters.h \
+    ui/configdialog.h
 
 FORMS += \
-    doe_gc.ui \
-    ui/config.ui \
-    ui/mainfm.ui
+    ui/mainfm.ui \
+    ui/execsqldialog.ui \
+    ui/doegcdlg.ui \
+    ui/configdialog.ui
