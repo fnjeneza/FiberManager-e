@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QProgressDialog>
 #include <QMessageBox>
-
+#include "configdialog.h"
 #include "config.h"
 #include "handler/database/mdbhandler.h"
 #include "handler/database/psqldatabase.h"
@@ -47,13 +47,13 @@ private slots:
 
 private:
     Ui::MainFM *ui;
-    Config *config=NULL;
+    ConfigDialog *config=NULL;
     MdbHandler *mdb=NULL;
     PsqlDatabase *psql=NULL;
-    FMConfigDAO pref;
+    Parameters *configDao=NULL;
     ExecSqlDialog *sqlDlg=NULL;
     DOEGCdlg *doegc=NULL;
-    bool prefSet;
+
     QDialog *dlg;
     QString shapePlaque;
     QString numSect;

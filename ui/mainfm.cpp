@@ -6,19 +6,19 @@ MainFM::MainFM(QWidget *parent) :
     ui(new Ui::MainFM)
 {
     ui->setupUi(this);
-    prefSet=false;
-    pref.setHost("10.0.0.254");
-    pref.setUserName("be_free");
-    pref.setPassword("123456");
-    pref.setBase("PLA13_038");
-    pref.setPlaque("PLA13_038");
+    configDao = new Parameters();
+    configDao->setHost("10.0.0.254");
+    configDao->setUserName("be_free");
+    configDao->setPassword("123456");
+    configDao->setBase("PLA13_038");
+    configDao->setPlaque("PLA13_038");
 //    pref.setSite("H:\\MarseilleFree2014\\Bases\\Site.mdb");
 //    pref.setOptique("H:\\MarseilleFree2014\\PLA13_038_SLO13\\Optique\\Bases\\Secteur.mdb");
 //    pref.setInfra("H:\\MarseilleFree2014\\PLA13_038_SLO13\\Infra\\Bases\\Secteur.mdb");
-    pref.setSite("T:\\test\\Bases\\Site.mdb");
-    pref.setOptique("T:\\test\\PLA13_038_SLO13\\Optique\\Bases\\Secteur.mdb");
-    pref.setInfra("T:\\test\\PLA13_038_SLO13\\Infra\\Bases\\Secteur.mdb");
-    pref.setNro("SLO13");
+    configDao->setSite("T:\\test\\Bases\\Site.mdb");
+    configDao->setOptique("T:\\test\\PLA13_038_SLO13\\Optique\\Bases\\Secteur.mdb");
+    configDao->setInfra("T:\\test\\PLA13_038_SLO13\\Infra\\Bases\\Secteur.mdb");
+    configDao->setNro("SLO13");
     shapePlaque = "plaque";
     numSect = "D5B5";
 }
@@ -47,8 +47,20 @@ MainFM::~MainFM()
 
 void MainFM::on_actionBdd_triggered()
 {
-    config = new Config(ui->centralwidget);
-    config->show();
+//    config = new ConfigDialog(this);
+//    if(config->exec()){
+//        QSqlDatabase p = config->getPostgresDatabase();
+//        qDebug()<<p.isOpen();
+//        qDebug()<<config->getPostgresDatabase();
+//        delete config;
+//        qDebug()<<config->getPostgresDatabase();
+//    }
+    ConfigDialog config(this);
+    if(config.exec()==0){
+    }
+
+
+
 }
 
 
@@ -120,20 +132,6 @@ void MainFM::on_actionFLR_triggered()
     progress.setLabelText("Export FLR...");
     progress.setModal(true);
 
-//    if(!prefSet){
-//        config = new Config(ui->centralwidget);
-//        config->show();
-//        pref = config->getConfig();
-//        prefSet=true;
-//    }
-//    psql->setHost(pref.getHost());
-//    psql->setPort(pref.getPort());
-//    psql->setNro(pref.getNro());
-//    psql->setDatabaseName(pref.getBase());
-//    psql->setUserName(pref.getUserName());
-//    psql->setPassword(pref.getPassword());
-
-
     connect();
 
     psql->connect();
@@ -187,7 +185,7 @@ void MainFM::on_actionFLR_triggered()
         }
 
         QString habitat = bal.toInt()>1?"COLL":"INDIV";
-        QString nro = pref.getNro();
+        QString nro = configDao->getNro();
         QString zone = "Zone Arriere";
         if(mdb->isZoneAvant(num, suf, voie)){
             zone= "Zone Avant";
@@ -402,7 +400,7 @@ void MainFM::on_actionCasage_triggered()
                         ""+QString::number(poche)+"\n";
                     continue;
                 }
-                if(boite.left(14).compare("PDB_"+pref.getPlaque()+"_")!=0){
+                if(boite.left(14).compare("PDB_"+configDao->getPlaque()+"_")!=0){
                     out<<"nommage netgeo de la boite de rattachement incorrect;"+boite+";\""+hexacle+"\";"
                          ""+QString::number(poche)+"\n";
                     continue;
@@ -426,7 +424,7 @@ void MainFM::on_actionCasage_triggered()
                          ""+QString::number(poche)+"\n";
                     continue;
                 }
-                if(boite.left(14).compare("BPI_SIT_"+pref.getNro()+"_")!=0){
+                if(boite.left(14).compare("BPI_SIT_"+configDao->getNro()+"_")!=0){
                     out<<"nommage netgeo de la boite de rattachement incorrect;"+boite+";\""+hexacle+"\";"
                          ""+QString::number(poche)+"\n";
                     continue;
@@ -471,22 +469,39 @@ void MainFM::on_actionCasage_triggered()
 }
 
 void MainFM::connect(){
+    if(configDao==NULL){
+        configDao = new Parameters();
+    }
 
     if(psql==NULL){
 
+        QString host = configDao->getHost();
+        QString dbName = configDao->getBase();
+        QString user = configDao->getUserName();
+        QString password = configDao->getPassword();
+
+        if(host.isEmpty()
+                || dbName.isEmpty()
+                || user.isEmpty()
+                || password.isEmpty()){
+            QMessageBox::information(this, "Connexion impossible", "La connexion à l'hôte ne peut aboutir vérifier les paramètres de connexion");
+
+            return;
+
+        }
+
         psql = new PsqlDatabase();
-        psql->setHost(pref.getHost());
-        psql->setDatabaseName(pref.getBase());
-        psql->setUserName(pref.getUserName());
-        psql->setPassword(pref.getPassword());
-//        psql->connect();
+        psql->setHost(configDao->getHost());
+        psql->setDatabaseName(configDao->getBase());
+        psql->setUserName(configDao->getUserName());
+        psql->setPassword(configDao->getPassword());
 
     }
     if(mdb==NULL){
         mdb=new MdbHandler();
-        mdb->setSite(pref.getSite());
-        mdb->setOptique(pref.getOptique());
-        mdb->setInfra(pref.getInfra());
+        mdb->setSite(configDao->getSite());
+        mdb->setOptique(configDao->getOptique());
+        mdb->setInfra(configDao->getInfra());
 //        mdb->connect();
     }
 }
@@ -542,7 +557,7 @@ void MainFM::on_actionAuditCorolle_triggered()
                 out<<"Origine du noeud incorrecte;"+noeud+"\n";
             }
             QString noeudBis = mdb->getNoeudBis(noeud);
-            if(noeudBis.right(16).left(11).compare("_"+pref.getPlaque()+"_")!=0){
+            if(noeudBis.right(16).left(11).compare("_"+configDao->getPlaque()+"_")!=0){
                 out<<"cable mal nommé; "+noeud+";"+noeudBis+";"+noeudBis.right(16)+"\n";
             }
             if(noeudBis.length()==6){
