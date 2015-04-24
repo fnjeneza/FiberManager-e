@@ -145,6 +145,17 @@ QString MdbHandler::getNoeudBis(QString noeud){
     return value;
 }
 
+bool MdbHandler::isNoeudBisExists(QString noeudbis){
+    QString query = "select NOEUD from noeuds "
+                    "where DELETED<>'*' AND "
+                    "NOEUD_BIS='"+noeudbis+"'";
+    QSqlQuery q = optique_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    return q.next();
+}
+
 bool MdbHandler::cableHasOrigine(QString noeud){
     QString query = "select N_AMONT from noeuds "
                     " where DELETED<>'*' and NOEUD='"+noeud+"'";
@@ -156,7 +167,7 @@ bool MdbHandler::cableHasOrigine(QString noeud){
     while(q.next()){
         value = q.value("N_AMONT").toString().trimmed();
     }
-    if(value!="-1"){
+    if(value=="-1"){
         return false;
     }
     return true;
@@ -283,6 +294,7 @@ QStringList MdbHandler::getCableAval(QString noeud){
         qDebug()<<q.lastError().text();
     }
     QStringList noeuds;
+    noeuds.clear();
     while(q.next()){
         noeuds<<q.value("NOEUD").toString().trimmed();
     }

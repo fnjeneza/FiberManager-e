@@ -44,6 +44,7 @@ public:
     bool cableHasCorrectExtremite(QString noeud);
     bool cableHasOrigine(QString noeud);
     QString getNoeudBis(QString noeud);
+    bool isNoeudBisExists(QString noeud);
 
 private:
     QSqlDatabase infra_db;
