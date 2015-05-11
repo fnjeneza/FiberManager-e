@@ -28,18 +28,24 @@ void ConfigDialog::on_connect_clicked()
     }
     param = configHandler->getConfiguration(projectId);
 
-    postgresDatabase = QSqlDatabase::addDatabase("QPSQL", "test");
-    postgresDatabase.setHostName(param.getHost());
-    postgresDatabase.setDatabaseName(param.getBase());
-    postgresDatabase.setUserName(param.getUserName());
-    postgresDatabase.setPassword(param.getPassword());
 
-
-    if(!postgresDatabase.open()){
-        QMessageBox::warning(this, "Erreur de connexion", postgresDatabase.lastError().text());
+    accessDatabase.setSite(param.getSite());
+    accessDatabase.setOptique(param.getOptique());
+    accessDatabase.setInfra(param.getInfra());
+    if(!accessDatabase.connect()){
+        QMessageBox::warning(this, "Erreur connexion", "Impossible de se connecter vérifier les paramètres de la base corolle");
         return;
     }
-        QMessageBox::information(this, "Connexion", "Connexion reussie");
+
+    postgisDatabase.setHost(param.getHost());
+    postgisDatabase.setDatabaseName(param.getBase());
+    postgisDatabase.setUserName(param.getUserName());
+    postgisDatabase.setPassword(param.getPassword());
+    if(!postgisDatabase.connect()){
+        QMessageBox::warning(this, "Erreur connexion", "Impossible de se connecter au serveur postgis");
+        return;
+    }
+    QMessageBox::information(this, "Connexion", "Connexion reussie");
 }
 
 void ConfigDialog::on_newConfig_clicked()
@@ -49,6 +55,20 @@ void ConfigDialog::on_newConfig_clicked()
 
 void ConfigDialog::on_save_clicked()
 {
+    QString optique = ui->optique->text();
+    QStringList arborescence = optique.split("/");
+    QStringList tmp;
+    for(int i=0; i<arborescence.length()-3; i++){
+        tmp<<arborescence.at(i);
+    }
+    tmp<<"Infra/Bases/Secteur.mdb";
+    QString infra = tmp.join("/");
+    tmp.clear();
+    for(int i=0; i<arborescence.length()-4; i++){
+        tmp<<arborescence.at(i);
+    }
+    tmp<<"Bases/Site.mdb";
+    QString site = tmp.join("/");
     Parameters newConfig =  Parameters(ui->id->text(),
                                         ui->nro->text(),
                                         ui->plaque->text(),
@@ -58,9 +78,9 @@ void ConfigDialog::on_save_clicked()
                                         ui->port->text(),
                                         ui->userName->text(),
                                         ui->pwd->text(),
-                                        ui->optique->text(),
-                                        ui->infra->text(),
-                                        ui->site->text());
+                                        optique,
+                                        infra,
+                                        site);
     if(configHandler->exists(newConfig)){
         configHandler->update(newConfig);
         return;
@@ -104,16 +124,17 @@ void ConfigDialog::on_editConfig_clicked()
     ui->userName->setText(config.getUserName());
     ui->pwd->setText(config.getPassword());
     ui->optique->setText(config.getOptique());
-    ui->infra->setText(config.getInfra());
-    ui->site->setText(config.getSite());
 }
-QSqlDatabase ConfigDialog::getPostgresDatabase() const
+Parameters ConfigDialog::getParam() const
 {
-    return postgresDatabase;
+    return param;
 }
 
-void ConfigDialog::setPostgresDatabase(const QSqlDatabase &value)
+MdbHandler ConfigDialog::getAccessDatabase() const
 {
-    postgresDatabase = value;
+    return accessDatabase;
 }
-
+PsqlDatabase ConfigDialog::getPostgisDatabase() const
+{
+    return postgisDatabase;
+}

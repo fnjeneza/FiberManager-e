@@ -11,7 +11,11 @@ PsqlDatabase::~PsqlDatabase()
         psql.close();
 }
 
-void PsqlDatabase::connect(){
+bool PsqlDatabase::isConnected(){
+    return psql.isOpen();
+}
+
+bool PsqlDatabase::connect(){
     psql = QSqlDatabase::addDatabase("QPSQL");
     psql.setHostName(host);
     //qDebug()<<"port"<<port;
@@ -21,9 +25,11 @@ void PsqlDatabase::connect(){
     if(!psql.isOpen()){
         if(!psql.open()){
             qDebug()<< psql.lastError().text();
+            return false;
         }
-    }
 
+    }
+    return true;
 }
 
 QStringList PsqlDatabase::getPME(){

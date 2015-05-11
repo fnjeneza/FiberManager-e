@@ -6,19 +6,23 @@ MainFM::MainFM(QWidget *parent) :
     ui(new Ui::MainFM)
 {
     ui->setupUi(this);
-    configDao = new Parameters();
-    configDao->setHost("10.0.0.254");
-    configDao->setUserName("be_free");
-    configDao->setPassword("123456");
-    configDao->setBase("PLA13_038");
-    configDao->setPlaque("PLA13_038");
+
+//    configDao = new Parameters();
+//    configDao->setHost("10.0.0.254");
+//    configDao->setUserName("be_free");
+//    configDao->setPassword("123456");
+//    configDao->setBase("PLA13_038");
+//    configDao->setPlaque("PLA13_038");
+
+
 //    pref.setSite("H:\\MarseilleFree2014\\Bases\\Site.mdb");
 //    pref.setOptique("H:\\MarseilleFree2014\\PLA13_038_SLO13\\Optique\\Bases\\Secteur.mdb");
 //    pref.setInfra("H:\\MarseilleFree2014\\PLA13_038_SLO13\\Infra\\Bases\\Secteur.mdb");
-    configDao->setSite("T:\\test\\Bases\\Site.mdb");
-    configDao->setOptique("T:\\test\\PLA13_038_SLO13\\Optique\\Bases\\Secteur.mdb");
-    configDao->setInfra("T:\\test\\PLA13_038_SLO13\\Infra\\Bases\\Secteur.mdb");
-    configDao->setNro("SLO13");
+
+//    configDao->setSite("T:\\test\\Bases\\Site.mdb");
+//    configDao->setOptique("T:\\test\\PLA13_038_SLO13\\Optique\\Bases\\Secteur.mdb");
+//    configDao->setInfra("T:\\test\\PLA13_038_SLO13\\Infra\\Bases\\Secteur.mdb");
+//    configDao->setNro("SLO13");
     shapePlaque = "plaque";
     numSect = "D5B5";
 }
@@ -57,6 +61,11 @@ void MainFM::on_actionBdd_triggered()
 //    }
     ConfigDialog config(this);
     if(config.exec()==0){
+        mdb = new MdbHandler();
+        psql = new PsqlDatabase();
+        *mdb = config.getAccessDatabase();
+        *psql = config.getPostgisDatabase();
+        param = config.getParam();
     }
 
 
@@ -66,7 +75,9 @@ void MainFM::on_actionBdd_triggered()
 
 void MainFM::on_actionSites_triggered()
 {
-   connect();
+    if(!connect()){
+        return;
+    }
    mdb->connect();
    psql->connect();
 
@@ -120,6 +131,12 @@ void MainFM::disconnect(){
 
 void MainFM::on_actionFLR_triggered()
 {
+    if(!connect()){
+        return;
+    }
+    psql->connect();
+    mdb->connect();
+
     QString path = QFileDialog::getSaveFileName(this, "Enregistrer le fichier","","Common Separated Value (*.csv)");
     //QFile csv(QDir::tempPath()+"/flr.csv");
     QFile csv(path);
@@ -131,13 +148,6 @@ void MainFM::on_actionFLR_triggered()
     QProgressDialog progress(this);
     progress.setLabelText("Export FLR...");
     progress.setModal(true);
-
-    connect();
-
-    psql->connect();
-    mdb->connect();
-
-
 
     QStringList hexacles = psql->getAllHexacles();
     int nb_site = hexacles.count();
@@ -185,7 +195,7 @@ void MainFM::on_actionFLR_triggered()
         }
 
         QString habitat = bal.toInt()>1?"COLL":"INDIV";
-        QString nro = configDao->getNro();
+        QString nro = param.getNro();
         QString zone = "Zone Arriere";
         if(mdb->isZoneAvant(num, suf, voie)){
             zone= "Zone Avant";
@@ -257,6 +267,7 @@ void MainFM::on_actionFLR_triggered()
     }
     progress.setValue(nb_site);
     csv.close();
+    disconnect();
 }
 
 
@@ -264,7 +275,9 @@ void MainFM::on_actionFLR_triggered()
 void MainFM::on_actionCasage_triggered()
 {
 
-    connect();
+    if(!connect()){
+        return;
+    }
     psql->connect();
     mdb->connect();
     QProgressDialog dlg(this);
@@ -400,7 +413,7 @@ void MainFM::on_actionCasage_triggered()
                         ""+QString::number(poche)+"\n";
                     continue;
                 }
-                if(boite.left(14).compare("PDB_"+configDao->getPlaque()+"_")!=0){
+                if(boite.left(14).compare("PDB_"+param.getPlaque()+"_")!=0){
                     out<<"nommage netgeo de la boite de rattachement incorrect;"+boite+";\""+hexacle+"\";"
                          ""+QString::number(poche)+"\n";
                     continue;
@@ -424,7 +437,7 @@ void MainFM::on_actionCasage_triggered()
                          ""+QString::number(poche)+"\n";
                     continue;
                 }
-                if(boite.left(14).compare("BPI_SIT_"+configDao->getNro()+"_")!=0){
+                if(boite.left(14).compare("BPI_SIT_"+param.getNro()+"_")!=0){
                     out<<"nommage netgeo de la boite de rattachement incorrect;"+boite+";\""+hexacle+"\";"
                          ""+QString::number(poche)+"\n";
                     continue;
@@ -466,49 +479,25 @@ void MainFM::on_actionCasage_triggered()
         csv.flush();
     }
     csv.close();
+    disconnect();
 }
 
-void MainFM::connect(){
-    if(configDao==NULL){
-        configDao = new Parameters();
+bool MainFM::connect(){
+
+    if(psql==NULL ||
+            mdb==NULL){
+
+    QMessageBox::warning(this, "Connection non établie", "Il faut d'abord érablir une connecion avec la base de donnée");
+    return false;
     }
-
-    if(psql==NULL){
-
-        QString host = configDao->getHost();
-        QString dbName = configDao->getBase();
-        QString user = configDao->getUserName();
-        QString password = configDao->getPassword();
-
-        if(host.isEmpty()
-                || dbName.isEmpty()
-                || user.isEmpty()
-                || password.isEmpty()){
-            QMessageBox::information(this, "Connexion impossible", "La connexion à l'hôte ne peut aboutir vérifier les paramètres de connexion");
-
-            return;
-
-        }
-
-        psql = new PsqlDatabase();
-        psql->setHost(configDao->getHost());
-        psql->setDatabaseName(configDao->getBase());
-        psql->setUserName(configDao->getUserName());
-        psql->setPassword(configDao->getPassword());
-
-    }
-    if(mdb==NULL){
-        mdb=new MdbHandler();
-        mdb->setSite(configDao->getSite());
-        mdb->setOptique(configDao->getOptique());
-        mdb->setInfra(configDao->getInfra());
-//        mdb->connect();
-    }
+    return true;
 }
 
 void MainFM::on_actionAuditCorolle_triggered()
 {
-    connect();
+    if(!connect()){
+        return;
+    }
     mdb->connect();
     QString path = QFileDialog::getSaveFileName(this, "Enregistrer le fichier","","CSV (*.csv)");
     QProgressDialog progress(this);
@@ -523,6 +512,9 @@ void MainFM::on_actionAuditCorolle_triggered()
     out<<"erreur;noeud;poche\n";
     csv.flush();
 
+    QStringList comadres;
+    comadres.clear();
+
     QStringList noeuds = mdb->getAllOptiqueNoeud();
     int max = noeuds.length();
     progress.setMaximum(max);
@@ -536,6 +528,18 @@ void MainFM::on_actionAuditCorolle_triggered()
         if(chambre.isEmpty()){
             out<<"Noeud non associé à l'infra;"+noeud+"\n";
             continue;
+        }
+        if(noeud=="23015")
+            qDebug()<<"";
+        QString comadre=mdb->getComadre(noeud);
+
+        if(!comadre.isEmpty()){
+            if(comadres.contains(comadre)){
+                out<<"Doublons de l'étiquette du noeud;"+noeud+";"+comadre+"\n";
+            }
+            else{
+                comadres<<comadre;
+            }
         }
         int tranche = mdb->getTranche(noeud).toInt();
         //traitement de cable
@@ -557,8 +561,8 @@ void MainFM::on_actionAuditCorolle_triggered()
                 out<<"Origine du noeud incorrecte;"+noeud+"\n";
             }
             QString noeudBis = mdb->getNoeudBis(noeud);
-            if(noeudBis.right(16).left(11).compare("_"+configDao->getPlaque()+"_")!=0){
-                out<<"cable mal nommé; "+noeud+";"+noeudBis+";"+noeudBis.right(16)+"\n";
+            if(noeudBis.right(16).left(11).compare("_"+param.getPlaque()+"_")!=0){
+                out<<"cable mal nommé; "+noeud+";"+noeudBis+";"+noeudBis.right(16).left(11)+"\n";
             }
             if(noeudBis.length()==6){
                 if(noeudBis.right(5).left(2).toInt()!=poche){
@@ -594,9 +598,31 @@ void MainFM::on_actionAuditCorolle_triggered()
         }
     csv.flush();
     }
+    progress.setValue(max);
+    progress.setLabelText("Vérifcation :adresse, étiquette");
+    QStringList noeudUtil=mdb->getUsedInfraNoeud(); //seulement les chambres
+    progress.setMaximum(noeudUtil.length());
+    for(int i=0; i<noeudUtil.length(); i++){
+        progress.setValue(i);
+        if(mdb->isRivoliEmpty(noeudUtil.at(i))){
+            out<<"Noeud sans adresse;"<<noeudUtil.at(i)<<"\n";
+            csv.flush();
+        }
+        bool test = mdb->isEtiquetteEmpty(noeudUtil.at(i));
+        if(test){
+            out<<"Noeud sans Num FT (Etiquette);"<<noeudUtil.at(i)<<"\n";
+            csv.flush();
+        }
+        QString doublon = mdb->multipleFTEtiquetteOccurence(noeudUtil.at(i));
+        if(!doublon.isEmpty()){
+            out<<"Doublons Num FT (Etiquette);"+doublon+"\n";
+            csv.flush();
+        }
 
+    }
     csv.close();
     QMessageBox::information(this, "Fin audit", "Audit corolle terminé");
+    disconnect();
 
 }
 
@@ -609,7 +635,9 @@ void MainFM::on_actionMAJ_Base_CTR_triggered()
 
 void MainFM::on_actionLTA_triggered()
 {
-    connect();
+    if(!connect()){
+        return;
+    }
     psql->connect();
     mdb->connect();
 
@@ -675,4 +703,27 @@ void MainFM::on_actionGC_2_triggered()
     doegc=new DOEGCdlg();
     doegc->setModal(true);
     doegc->show();
+}
+
+void MainFM::on_actionMat_riel_d_ploy_triggered()
+{
+
+    QString path = QFileDialog::getSaveFileName(this, "Enregistrer le fichier","","CSV (*.csv)");
+    QFile csv(path);
+    csv.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&csv);
+
+    mdb->connect();
+//    out<<"erreur;noeud;poche\n";
+//    csv.flush();
+
+    QStringList cable = mdb->getDeployedCable();
+    for(int i=0; i<cable.length(); i++){
+        out<<cable.at(i)+"\n";
+        csv.flush();
+    }
+    csv.close();
+    disconnect();
+    QMessageBox::information(this, "Export matériel", "Export terminé");
+
 }

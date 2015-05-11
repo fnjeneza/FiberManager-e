@@ -3,9 +3,7 @@
 
 #include <QFile>
 #include <QDir>
-#include "address.h"
 #include "dbhandler.h"
-#include "fmsql.h"
 
 class FMGisHandler
 {

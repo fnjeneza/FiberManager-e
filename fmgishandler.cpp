@@ -3,9 +3,9 @@
 FMGisHandler::FMGisHandler()
 {
     CODELESS="select * from codeless_view";
-    ALL_ADDRESSES="select code, num, suf, voie from casage_";
-    DbHandler dbh=DbHandler();
-    gisDb = dbh.connectToPostgresServer("gis");
+    ALL_ADDRESSES="select code, num, suf, voie from casage";
+    DbHandler dbh=DbHandler("10.0.0.254","be_free","123456","PLA13_038");
+    //gisDb = dbh.connectToPostgresServer("gis");
     audit=new QFile(QDir::tempPath()+"/audit.csv");
     if(audit->exists()){
         audit->remove();
@@ -36,9 +36,10 @@ void FMGisHandler::codeController(){
 
     QTextStream text(audit);
     while(query.next()){
-        QString adresse = Address::getCompleteAddress(query.value("num").toInt(),
-                                    query.value("suf").toString(),
-                                    query.value("voie").toString());
+        QString adresse;
+//        = Address::getCompleteAddress(query.value("num").toInt(),
+//                                    query.value("suf").toString(),
+//                                    query.value("voie").toString());
         text<<";Adresse sans hexacle;"+adresse+"\n";
         text.flush();
     }
@@ -61,9 +62,10 @@ void FMGisHandler::invalidAddress(){
     }
     QTextStream text(audit);
     while(query.next()){
-        QString addresse = Address::getCompleteAddress(query.value("num").toInt(),
-                                                       query.value("suf").toString(),
-                                                       query.value("voie").toString());
+        QString addresse;
+//        = Address::getCompleteAddress(query.value("num").toInt(),
+//                                                       query.value("suf").toString(),
+//                                                       query.value("voie").toString());
         QString num1=QString::number(query.value("num").toInt());
         QString num2=query.value("num").toString();
         qDebug()<<num1<<" "<<num2;

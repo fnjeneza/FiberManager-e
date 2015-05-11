@@ -15,7 +15,7 @@ public:
     ~MdbHandler();
 
     void connect(QString ConnectionName);
-    void connect();
+    bool connect();
     void disconnect();
     void setOptique(QString optique);
     void setInfra(QString infra);
@@ -45,6 +45,12 @@ public:
     bool cableHasOrigine(QString noeud);
     QString getNoeudBis(QString noeud);
     bool isNoeudBisExists(QString noeud);
+    QStringList getUsedInfraNoeud();
+    bool isRivoliEmpty(QString noeud);
+    bool isEtiquetteEmpty(QString noeud);
+    QString multipleFTEtiquetteOccurence(QString noeud);
+    QString getComadre(QString noeud);
+    QStringList getDeployedCable();
 
 private:
     QSqlDatabase infra_db;

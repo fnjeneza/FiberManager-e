@@ -14,7 +14,7 @@ public:
     PsqlDatabase();
     ~PsqlDatabase();
 
-    void connect();
+    bool connect();
     void disconnect();
     QString flr();
     QStringList columns(QString tableName);
@@ -50,6 +50,8 @@ public:
 
     QString getNro() const;
     void setNro(const QString &value);
+
+    bool isConnected();
 
 private:
     QSqlDatabase psql;

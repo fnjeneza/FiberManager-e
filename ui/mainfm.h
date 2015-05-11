@@ -4,8 +4,8 @@
 #include <QMainWindow>
 #include <QProgressDialog>
 #include <QMessageBox>
+
 #include "configdialog.h"
-#include "config.h"
 #include "handler/database/mdbhandler.h"
 #include "handler/database/psqldatabase.h"
 #include "execsqldialog.h"
@@ -22,7 +22,7 @@ class MainFM : public QMainWindow
 public:
     explicit MainFM(QWidget *parent = 0);
     ~MainFM();
-    void connect();
+    bool connect();
     void disconnect();
 
 
@@ -45,12 +45,15 @@ private slots:
 
     void on_actionGC_2_triggered();
 
+    void on_actionMat_riel_d_ploy_triggered();
+
 private:
     Ui::MainFM *ui;
     ConfigDialog *config=NULL;
     MdbHandler *mdb=NULL;
     PsqlDatabase *psql=NULL;
-    Parameters *configDao=NULL;
+    //Parameters *configDao=NULL;
+    Parameters param;
     ExecSqlDialog *sqlDlg=NULL;
     DOEGCdlg *doegc=NULL;
 

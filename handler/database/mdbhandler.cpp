@@ -13,29 +13,20 @@ MdbHandler::~MdbHandler()
 }
 
 
-//void MdbHandler::connect(QString ConnectionName){
-//    optique_db = QSqlDatabase::addDatabase("QODBC", ConnectionName);
-//    optique_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+optique);
-//    if(!optique_db.open()){
-//        qDebug()<<optique_db.lastError().text();
-//    }
-//    optique_db = QSqlDatabase::addDatabase("QODBC", ConnectionName);
-//    optique_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+site);
-//    if(!optique_db.open()){
-//        qDebug()<<optique_db.lastError().text();
-//    }
-
-//}
-
-void MdbHandler::connect(){
-
+bool MdbHandler::connect(){
+    int connection=0;
     if(!optique.isEmpty()){
         optique_db = QSqlDatabase::addDatabase("QODBC","optique" );
         optique_db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DBQ="+optique);
         if(!optique_db.isOpen()){
             if(!optique_db.open()){
                 qDebug()<<optique_db.lastError().text();
+                return false;
             }
+            connection++;
+        }
+        else{
+            connection++;
         }
 
     }
@@ -48,7 +39,12 @@ void MdbHandler::connect(){
         if(!site_db.isOpen()){
             if(!site_db.open()){
                 qDebug()<<site_db.lastError().text();
+                return false;
             }
+            connection++;
+        }
+        else{
+            connection++;
         }
 
     }
@@ -61,13 +57,23 @@ void MdbHandler::connect(){
         if(!infra_db.isOpen()){
             if(!infra_db.open()){
                 qDebug()<<infra_db.lastError().text();
+                return false;
             }
+            connection++;
+        }
+        else{
+            connection++;
         }
 
     }
     else{
         qDebug()<<"Chemin vers Infra non défini";
     }
+
+    if(connection==3){
+        return true;
+    }
+    return false;
 
 }
 QString MdbHandler::getInfraNoeudAdresse(QString noeud){
@@ -83,6 +89,82 @@ QString MdbHandler::getInfraNoeudAdresse(QString noeud){
                 q.value("RIVOLI").toString().trimmed();
     }
     return adresse;
+}
+
+bool MdbHandler::isRivoliEmpty(QString noeud){
+    QString query = "select RIVOLI from noeuds "
+                    "where NOEUD='"+noeud+"' AND DELETED<>'*'";
+    QSqlQuery q = infra_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    if(q.next()){
+        return q.value("RIVOLI").toString().trimmed().isEmpty();
+    }
+    return false;
+}
+
+bool MdbHandler::isEtiquetteEmpty(QString noeud){
+    QString query = "select NOEUD_BIS, REF_MAT from noeuds "
+                    "where NOEUD='"+noeud+"' AND DELETED<>'*' AND REF_MAT<>'175'";
+    QSqlQuery q = infra_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    if(q.next()){
+        int refMat = q.value("REF_MAT").toInt();
+        if(refMat!=175){
+            return q.value("NOEUD_BIS").toString().trimmed().isEmpty();
+        }
+    }
+    return false;
+}
+
+QString MdbHandler::multipleFTEtiquetteOccurence(QString noeud){
+    QString query = "select NOEUD_BIS from noeuds "
+                    "where NOEUD='"+noeud+"'";
+    QSqlQuery q = infra_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QString etiquette;
+    etiquette.clear();
+    if(q.next()){
+        etiquette=q.value("NOEUD_BIS").toString().trimmed();
+    }
+
+    query = "select NOEUD_BIS,INSEE_COM, count(NOEUD_BIS) as nb from noeuds "
+                    "where trim(NOEUD_BIS)='"+etiquette+"' group by NOEUD_BIS, INSEE_COM";
+    q = infra_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QString value;
+    value.clear();
+    if(q.next()){
+        QString noeud = q.value("NOEUD_BIS").toString().trimmed();
+        int nb = q.value("nb").toInt();
+        if(nb>1){
+            value=noeud;
+        }
+    }
+    return value;
+}
+
+QStringList MdbHandler::getUsedInfraNoeud(){
+    QString query = "select distinct CHAMBRE "
+                    "from affectat "
+                    "where DELETED<>'*' and CHAMBRE LIKE 'C%'";
+    QSqlQuery q = infra_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QStringList values;
+    values.clear();
+    while(q.next()){
+        values<<q.value("CHAMBRE").toString().trimmed();
+    }
+    return values;
 }
 
 QString MdbHandler::getOptiqueNoeudAdresse(QString noeud){
@@ -145,6 +227,20 @@ QString MdbHandler::getNoeudBis(QString noeud){
     return value;
 }
 
+//QString MdbHandler::getComadre(QString noeud){
+//    QString query = "select NOEUD_BIS from noeuds "
+//                    " where DELETED<>'*' and NOEUD='"+noeud+"'";
+//    QSqlQuery q = optique_db.exec(query);
+//    if(!q.isActive()){
+//        qDebug()<<q.lastError().text();
+//    }
+//    QString value;
+//    while(q.next()){
+//        value = q.value("NOEUD_BIS").toString().trimmed();
+//    }
+//    return value;
+//}
+
 bool MdbHandler::isNoeudBisExists(QString noeudbis){
     QString query = "select NOEUD from noeuds "
                     "where DELETED<>'*' AND "
@@ -187,9 +283,24 @@ QStringList MdbHandler::getAllOptiqueNoeud(){
     return values;
 }
 
+QString MdbHandler::getComadre(QString noeud){
+    QString query = "select COMADRE from pb "
+                    "where NOEUD='"+noeud+"' and DELETED<>'*'";
+    QSqlQuery q = optique_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QString value;
+    value.clear();
+    if(q.next()){
+        value=q.value("COMADRE").toString().trimmed();
+    }
+    return value;
+}
+
 QStringList MdbHandler::getAssociatedChambre(QString noeud){
     QString query = "select CHAMBRE from affectat "
-                    "where NOEUD='"+noeud+"' AND DELETED<>'*'";
+                    "where trim(NOEUD)='"+noeud+"' AND DELETED<>'*'";
     QSqlQuery q = infra_db.exec(query);
     if(!q.isActive()){
         qDebug()<<q.lastError().text();
@@ -198,6 +309,26 @@ QStringList MdbHandler::getAssociatedChambre(QString noeud){
     values.clear();
     while(q.next()){
         values<<q.value("CHAMBRE").toString();
+    }
+    return values;
+}
+
+QStringList MdbHandler::getDeployedCable(){
+    QString query = "select NOEUD, TRANCHE, LONG_CABLE, TYPE_CABLE, NOEUD_BIS from noeuds "
+                    "where RECETTE_CA='T' AND DELETED<>'*'";
+    QSqlQuery q = optique_db.exec(query);
+    if(!q.isActive()){
+        qDebug()<<q.lastError().text();
+    }
+    QStringList values;
+    values.clear();
+    while(q.next()){
+        values<< q.value("NOEUD").toString().trimmed()+";"
+                       ""+q.value("TRANCHE").toString().trimmed()+";"
+                       ""+q.value("LONG_CABLE").toString().trimmed()+";"
+                        ""+q.value("NOEUD_BIS").toString().trimmed()+";"
+                       ""+q.value("TYPE_CABLE").toString().trimmed();
+
     }
     return values;
 }

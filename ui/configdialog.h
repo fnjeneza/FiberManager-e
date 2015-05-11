@@ -4,8 +4,11 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QDir>
 
 #include "handler/confighandler.h"
+#include "handler/database/mdbhandler.h"
+#include "handler/database/psqldatabase.h"
 
 namespace Ui {
 class ConfigDialog;
@@ -21,8 +24,10 @@ public:
 
     void remove(QString project_id);
 
-    QSqlDatabase getPostgresDatabase() const;
-    void setPostgresDatabase(const QSqlDatabase &value);
+    PsqlDatabase getPostgisDatabase() const;
+    MdbHandler getAccessDatabase() const;
+
+    Parameters getParam() const;
 
 private slots:
     void on_connect_clicked();
@@ -42,7 +47,9 @@ private:
     ConfigHandler *configHandler;
     Parameters param;
 
-    QSqlDatabase postgresDatabase;
+    MdbHandler accessDatabase;
+    PsqlDatabase postgisDatabase;
+
 };
 
 #endif // CONFIGDIALOG_H

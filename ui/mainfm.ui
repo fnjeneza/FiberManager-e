@@ -37,6 +37,7 @@
       <string>Exporter</string>
      </property>
      <addaction name="actionMat_riel"/>
+     <addaction name="actionMat_riel_d_ploy"/>
     </widget>
     <widget class="QMenu" name="menuImporter">
      <property name="enabled">
@@ -216,6 +217,11 @@
   <action name="actionCTR_2">
    <property name="text">
     <string>CTR</string>
+   </property>
+  </action>
+  <action name="actionMat_riel_d_ploy">
+   <property name="text">
+    <string>Matériel déployé</string>
    </property>
   </action>
  </widget>
